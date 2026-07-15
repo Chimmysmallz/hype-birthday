@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0b0517">
+<title>HYPE — Party Games</title>
+<link rel="apple-touch-icon" id="appleIcon">
+<link rel="icon" id="favIcon">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HYPE">
+<meta name="mobile-web-app-capable" content="yes">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<style>
+  :root{
+    --bg:#0b0517; --card:#181033; --card2:#241651;
+    --ink:#f6f2ff; --muted:#b3a8d8;
+    --p1:#ff2e93; --p2:#7a4dff; --p3:#00e0c6; --p4:#ffb800; --p5:#ff7a59;
+    --grad:linear-gradient(135deg,#ff2e93,#7a4dff 55%,#00e0c6);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{background:linear-gradient(150deg,#13062a,#0b0517 50%,#1a0830);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow-x:hidden;-webkit-user-select:none;user-select:none;position:relative}
+  .blob{position:fixed;border-radius:50%;filter:blur(72px);opacity:.42;z-index:-1;pointer-events:none;animation:float 15s ease-in-out infinite}
+  .b1{width:320px;height:320px;background:var(--p1);top:-70px;left:-70px}
+  .b2{width:300px;height:300px;background:var(--p2);bottom:-60px;right:-60px;animation-delay:-5s}
+  .b3{width:260px;height:260px;background:var(--p3);top:42%;left:55%;animation-delay:-9s}
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(34px,-46px) scale(1.12)}66%{transform:translate(-28px,28px) scale(.92)}}
+  #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9}
+  #app{max-width:560px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;position:relative;z-index:1}
+  .screen{display:none;flex:1;flex-direction:column;padding:20px;animation:fade .28s ease}
+  .screen.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .topbar{display:flex;align-items:center;gap:12px;min-height:44px;margin-bottom:8px}
+  .back{background:var(--card);border:none;color:var(--ink);width:44px;height:44px;border-radius:14px;font-size:22px;cursor:pointer}
+  .topbar h2{font-size:18px;margin:0;font-weight:800;letter-spacing:.3px}
+
+  #age{justify-content:center;align-items:center;text-align:center}
+  .agewrap{max-width:380px;width:100%}
+  .ageq{font-size:26px;font-weight:900;margin:18px 0 6px}
+  .agesub{color:var(--muted);font-weight:600;margin-bottom:26px}
+  .agebtn{display:block;width:100%;border:none;border-radius:20px;padding:24px;font-size:20px;font-weight:900;color:#fff;cursor:pointer;margin-bottom:16px;box-shadow:0 12px 30px rgba(0,0,0,.4);transition:transform .12s}
+  .agebtn:active{transform:scale(.97)}
+  .ageA{background:linear-gradient(135deg,#00b3a4,#00e0c6)}
+  .ageB{background:linear-gradient(135deg,#ff2e93,#7a4dff)}
+  .agebtn small{display:block;font-size:13px;font-weight:600;opacity:.9;margin-top:4px}
+  .disc{color:var(--muted);font-size:12px;margin-top:10px;line-height:1.5}
+
+  .brand{text-align:center;margin:14px 0 2px}
+  .logo{font-size:58px;font-weight:900;letter-spacing:3px;line-height:1;
+    background:linear-gradient(90deg,#ff2e93,#ffb800,#00e0c6,#7a4dff,#ff2e93);background-size:300% auto;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite,bounce 3s ease-in-out infinite}
+  @keyframes shine{to{background-position:300% center}}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @keyframes wallscroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+  .tag{color:var(--muted);font-size:14px;margin-top:8px;font-weight:600}
+  .modepill{display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:var(--card2);padding:8px 14px;border-radius:30px;font-size:12px;font-weight:800;cursor:pointer}
+  .modepill .chg{color:var(--p3)}
+  .settings{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+  .setpill{background:var(--card2);border:2px solid transparent;color:var(--ink);padding:8px 14px;border-radius:30px;font-size:12px;font-weight:800;cursor:pointer}
+  .setpill.on{border-color:var(--p3);background:rgba(0,224,198,.14)}
+  .sectlbl{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:20px 4px 8px}
+  .tiles{display:flex;flex-direction:column;gap:14px}
+  .tile{border:none;border-radius:22px;padding:20px;text-align:left;cursor:pointer;color:#fff;position:relative;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.4);transition:transform .12s}
+  .tile:active{transform:scale(.97)}
+  .tile::after{content:'';position:absolute;top:0;left:-70%;width:45%;height:100%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);animation:sheen 4.8s ease-in-out infinite}
+  .tile:nth-child(2)::after{animation-delay:.5s}.tile:nth-child(3)::after{animation-delay:1s}
+  .tile:nth-child(4)::after{animation-delay:1.5s}.tile:nth-child(5)::after{animation-delay:2s}
+  .tile:nth-child(6)::after{animation-delay:2.5s}.tile:nth-child(7)::after{animation-delay:3s}
+  .tile:nth-child(8)::after{animation-delay:3.5s}.tile:nth-child(9)::after{animation-delay:4s}
+  @keyframes sheen{0%{left:-70%}45%,100%{left:150%}}
+  .tile .emoji{font-size:36px;display:inline-block;animation:wiggle 2.6s ease-in-out infinite}
+  @keyframes wiggle{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(9deg)}}
+  .tile h3{margin:6px 0 2px;font-size:20px;font-weight:900}
+  .tile p{margin:0;font-size:12.5px;opacity:.95;font-weight:600}
+  .tile .meta{position:absolute;top:16px;right:16px;font-size:11px;background:rgba(0,0,0,.28);padding:6px 10px;border-radius:30px;font-weight:800}
+  .t1{background:linear-gradient(135deg,#ff2e93,#ff7a59)}
+  .t2{background:linear-gradient(135deg,#7a4dff,#b14dff)}
+  .t3{background:linear-gradient(135deg,#00b3a4,#00e0c6)}
+  .t4{background:linear-gradient(135deg,#c11e3a,#ff5d3d)}
+  .t5{background:linear-gradient(135deg,#2b6fff,#00c2ff)}
+  .t6{background:linear-gradient(135deg,#f7971e,#ffd200)}
+  .t7{background:linear-gradient(135deg,#11998e,#38ef7d)}
+  .t8{background:linear-gradient(135deg,#8e2de2,#4a00e0)}
+  .t9{background:linear-gradient(135deg,#eb3349,#f45c43)}
+  .onlinebanner{background:var(--card);border:1px dashed #3a2a6e;border-radius:16px;padding:14px 16px;margin-top:18px;color:var(--muted);font-size:12.5px;line-height:1.5;font-weight:600}
+  .foot{color:var(--muted);font-size:12px;text-align:center;margin-top:18px;padding-top:8px}
+
+  h1.big{font-size:28px;font-weight:900;margin:6px 0 4px}
+  p.sub{color:var(--muted);margin:0 0 16px;font-weight:600}
+  .card{background:var(--card);border-radius:20px;padding:18px;margin-bottom:14px}
+  .btn{display:block;width:100%;border:none;border-radius:18px;padding:17px;font-size:18px;font-weight:800;color:#fff;cursor:pointer;background:var(--grad);margin-top:10px;transition:transform .1s}
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:var(--card2);color:var(--ink)}
+  .btn.sm{padding:13px;font-size:15px}.btn:disabled{opacity:.4}
+  .row{display:flex;gap:10px}.row .btn{margin-top:0}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 4px}
+  .chip{background:var(--card2);border:2px solid transparent;color:var(--ink);padding:12px 16px;border-radius:30px;font-weight:700;cursor:pointer;font-size:15px}
+  .chip.on{border-color:var(--p3);background:rgba(0,224,198,.14)}
+  .chip.lock{opacity:.7;border-color:#ffd200}
+  .perk{padding:9px 0;border-bottom:1px solid #2a1d52;font-size:14.5px;font-weight:600}
+  .perk:last-child{border-bottom:none}
+  .soon{background:var(--card2);color:var(--muted);font-size:10px;padding:3px 7px;border-radius:20px;margin-left:6px;font-weight:800}
+  #setPrem.on{border-color:#ffd200;background:rgba(255,210,0,.14)}
+  input.inp{width:100%;background:var(--card2);border:2px solid #34245f;color:var(--ink);padding:15px;border-radius:14px;font-size:16px;font-weight:600;outline:none}
+  input.inp:focus{border-color:var(--p2)}
+  .center{text-align:center}
+  .sip{background:rgba(255,184,0,.14);border:1px solid rgba(255,184,0,.4);color:#ffd76b;border-radius:14px;padding:11px 14px;margin-top:12px;font-weight:700;font-size:14px;text-align:center}
+
+  #ch_play{justify-content:center;align-items:center;text-align:center;padding:0}
+  .ch_top{position:absolute;top:18px;left:0;right:0;display:flex;justify-content:space-between;padding:0 22px;font-weight:900;font-size:22px}
+  .ch_timer{color:var(--p4)}.ch_score{color:var(--p3)}
+  .ch_word{font-size:44px;font-weight:900;line-height:1.1;padding:0 18px;max-width:92%}
+  .ch_hint{position:absolute;bottom:118px;left:0;right:0;color:var(--muted);font-weight:600;font-size:13px}
+  .ch_actions{position:absolute;bottom:24px;left:0;right:0;display:flex;gap:14px;padding:0 22px}
+  .ch_actions .btn{margin:0}
+  .pass{background:linear-gradient(135deg,#ff5d5d,#ff8a3d)}
+  .got{background:linear-gradient(135deg,#23d18b,#00e0c6)}
+  .count{font-size:120px;font-weight:900;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .reslist{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .resitem{display:flex;justify-content:space-between;background:var(--card);padding:12px 16px;border-radius:14px;font-weight:700}
+  .resitem .x{color:#ff7a7a}.resitem .v{color:#3ad6a6}
+  .flash{position:fixed;inset:0;opacity:0;pointer-events:none;z-index:5;transition:opacity .12s}
+  .flash.show{opacity:.9}
+
+  .vibe{display:flex;flex-wrap:wrap;gap:10px}
+  .vibe .chip{flex:1;text-align:center;min-width:40%}
+  .tod{min-height:210px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border-radius:24px;padding:24px;font-size:23px;font-weight:800;line-height:1.25}
+  .tod.truth{background:linear-gradient(135deg,#2b6fff,#7a4dff)}
+  .tod.dare{background:linear-gradient(135deg,#ff2e93,#ff7a59)}
+  .tod .lbl{font-size:13px;letter-spacing:3px;opacity:.85;margin-bottom:12px;font-weight:900}
+  .tod .sipinline{font-size:13px;font-weight:700;opacity:.95;margin-top:14px}
+  .tod.empty{background:var(--card);color:var(--muted);font-size:18px;font-weight:600}
+
+  .plist{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .ptag{background:var(--card2);padding:10px 14px;border-radius:30px;font-weight:700;display:flex;align-items:center;gap:10px}
+  .ptag .rm{color:var(--muted);cursor:pointer;font-weight:900}
+  .prompt{font-size:28px;font-weight:900;text-align:center;line-height:1.15;margin:10px 0}
+  .crownrow{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px}
+  .crownbtn{background:var(--card2);border:none;color:var(--ink);padding:14px 18px;border-radius:16px;font-weight:800;font-size:16px;cursor:pointer}
+  .crownbtn:active{transform:scale(.96)}
+  .board{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .brow{display:flex;justify-content:space-between;background:var(--card);padding:12px 16px;border-radius:14px;font-weight:800}
+  .brow .pts{color:var(--p4)}.lead{border:2px solid var(--p4)}
+  .winner{font-size:38px;font-weight:900;text-align:center;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;margin:6px 0}
+
+  .rolecard{min-height:240px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border-radius:24px;padding:26px;background:linear-gradient(160deg,#241651,#3a1f6e)}
+  .rolecard .re{font-size:70px;line-height:1}
+  .rolecard .rn{font-size:28px;font-weight:900;margin:10px 0 6px}
+  .rolecard .rg{color:#e7deff;font-weight:600;font-size:15px;line-height:1.4;max-width:300px}
+  .spycard{background:linear-gradient(160deg,#3a1020,#5a1336)}
+  .nightbox{min-height:140px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border-radius:22px;padding:22px;background:linear-gradient(160deg,#10082a,#1d1147);margin-bottom:14px}
+  .nightbox .big2{font-size:23px;font-weight:900;line-height:1.25;margin-bottom:8px}
+  .nightbox .nn{color:var(--muted);font-weight:600;font-size:14px}
+  .narr{color:var(--p4);font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+  .rerow{display:flex;justify-content:space-between;background:var(--card);padding:11px 15px;border-radius:13px;font-weight:700;margin-bottom:7px}
+  .rerow.dead{opacity:.5}.rerow .dr{color:var(--muted);font-weight:700;font-size:13px}
+  .step{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+  .bigtimer{font-size:72px;font-weight:900;text-align:center;color:var(--p3);margin:10px 0}
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<canvas id="confetti"></canvas>
+<div class="flash" id="flash"></div>
+
+<div id="howto" style="position:fixed;inset:0;z-index:14;display:none;justify-content:center;align-items:center;padding:20px;background:rgba(5,2,15,.85)">
+  <div style="background:#181033;max-width:460px;width:100%;max-height:86vh;overflow-y:auto;border-radius:22px;padding:22px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 id="howto_title" style="margin:0;font-size:20px;font-weight:900"></h2>
+      <button onclick="hideHow()" style="background:#241651;border:none;color:#f6f2ff;width:38px;height:38px;border-radius:12px;font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <div id="howto_body" style="color:#e7deff;font-size:14.5px;line-height:1.6"></div>
+    <button class="btn" style="margin-top:16px" onclick="hideHow()">Got it 👍</button>
+  </div>
+</div>
+
+<div id="bday" style="position:fixed;inset:0;z-index:8;display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:26px;background:radial-gradient(circle at 50% 30%,#3a1068,#0b0517 72%)">
+  <img src="oke.png" alt="Okechukwu Ugoji" style="width:172px;height:172px;border-radius:50%;object-fit:cover;border:4px solid #ffd200;box-shadow:0 0 46px rgba(255,46,147,.55)">
+  <div style="font-size:44px;margin-top:8px;animation:bounce 2.4s ease-in-out infinite">🎂</div>
+  <div id="bday_title" class="logo" style="font-size:32px;margin:10px 0;line-height:1.15">Happy Birthday!</div>
+  <div id="bday_sub" style="color:#e7deff;font-weight:600;margin:6px 0 26px;max-width:360px;line-height:1.5"></div>
+  <button class="btn" style="max-width:300px" onclick="bdayEnter()">Let's celebrate 🎉</button>
+</div>
+
+<div id="wall" style="position:fixed;inset:0;z-index:12;display:none;flex-direction:column;background:radial-gradient(circle at 50% 18%,#2a0a4a,#0b0517 76%);padding:22px 30px;overflow:hidden">
+  <div style="display:flex;align-items:center;gap:16px;flex-shrink:0">
+    <img src="oke.png" alt="Okechukwu Ugoji" style="width:74px;height:74px;border-radius:50%;object-fit:cover;border:3px solid #ffd200">
+    <div style="flex:1;min-width:0">
+      <div class="logo" style="font-size:32px;line-height:1.1">🎉 Happy Birthday, Okechukwu Ugoji!</div>
+      <div style="color:#e7deff;font-weight:600;font-size:15px">Wishes from the team — live 💌</div>
+    </div>
+    <button onclick="wallClose()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:44px;height:44px;border-radius:12px;font-size:20px;cursor:pointer">✕</button>
+  </div>
+  <div id="wall_scroll" style="flex:1;overflow:hidden;position:relative;margin-top:16px">
+    <div id="wall_track"></div>
+  </div>
+  <div style="flex-shrink:0;display:flex;align-items:center;gap:14px;margin-top:12px;color:#b3a8d8;font-weight:700;font-size:15px">
+    <img id="wall_qr" width="96" height="96" style="border-radius:10px;background:#fff" alt="QR">
+    <span>📲 Scan to add your birthday wish</span>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- AGE GATE -->
+  <section class="screen active" id="age">
+    <div class="agewrap">
+      <div class="logo" style="font-size:48px">HYPE</div>
+      <div class="ageq">First things first 🎈</div>
+      <div class="agesub">How old is the crew? We'll tailor the games to fit.</div>
+      <button class="agebtn ageA" onclick="setAge(false)">I'm under 18<small>Clean, fun, all-ages decks 🧃</small></button>
+      <button class="agebtn ageB" onclick="setAge(true)">I'm 18 or older<small>Unlocks Spicy, After Dark, Nightlife & Drinking mode 🔥</small></button>
+      <div class="disc">Please answer honestly. Adult content includes bolder dares, nightlife themes and an optional drinking-game mode. You can change this anytime from the home screen.</div>
+    </div>
+  </section>
+
+  <!-- HOME -->
+  <section class="screen" id="home">
+    <div class="brand">
+      <div class="logo">HYPE</div>
+      <div class="tag">Pass the phone. Start the chaos. 🎉</div>
+      <div id="bday_banner" style="display:none;margin-top:12px;background:linear-gradient(135deg,#ff2e93,#ffb800);color:#241200;padding:10px 18px;border-radius:30px;font-weight:800;font-size:13px"></div>
+      <div class="modepill" onclick="go('age')"><span id="modeText">🧃 All-ages mode</span><span class="chg">change</span></div>
+      <div class="settings">
+        <button class="setpill on" id="setSfx" onclick="toggleSfx()">🔊 SFX</button>
+        <button class="setpill" id="setMusic" onclick="toggleMusic()">🎵 Music</button>
+        <button class="setpill" id="setDrink" onclick="toggleDrink()" style="display:none">🍻 Drinks</button>
+        <button class="setpill" id="setPrem" onclick="openPrem()">✨ Go Premium</button>
+      </div>
+    </div>
+
+    <div class="sectlbl">💌 For the birthday star</div>
+    <div class="tiles">
+      <button class="tile" style="background:linear-gradient(135deg,#ff2e93,#ffb800);color:#241200" onclick="wishesOpen()"><span class="meta">NEW</span><div class="emoji">💌</div><h3>Birthday Wishes</h3><p>Leave a message for Okechukwu — see everyone's wishes live.</p></button>
+      <button class="tile t8" onclick="okeStart()"><span class="meta">🎂</span><div class="emoji">🧠</div><h3>Know Okechukwu?</h3><p>How well does the team know the birthday boss?</p></button>
+    </div>
+    <div class="sectlbl">🎮 Play on one phone</div>
+    <div class="tiles">
+      <button class="tile t1" onclick="openCharades()"><span class="meta">2–10</span><div class="emoji">🤳</div><h3>Charades</h3><p>Hold it to your forehead. Friends act it out. Tap to score.</p></button>
+      <button class="tile t2" onclick="openTod()"><span class="meta">3+</span><div class="emoji">🔥</div><h3>Truth or Dare</h3><p>Pick your vibe, then dare to find out.</p></button>
+      <button class="tile t3" onclick="go('ml_setup')"><span class="meta">3+</span><div class="emoji">👑</div><h3>Most Likely To…</h3><p>Point at the guilty one. Crown a champion.</p></button>
+      <button class="tile t4" onclick="go('ww_setup')"><span class="meta">5+</span><div class="emoji">🐺</div><h3>Werewolf</h3><p>The app deals roles & narrates. No moderator needed.</p></button>
+      <button class="tile t5" onclick="go('spy_setup')"><span class="meta">3+</span><div class="emoji">🕵️</div><h3>Spyfall</h3><p>Everyone knows the secret location — except one spy.</p></button>
+      <button class="tile t6" onclick="openWyr()"><span class="meta">2+</span><div class="emoji">🤔</div><h3>Would You Rather</h3><p>Impossible choices. Pick a side and defend it.</p></button>
+      <button class="tile t7" onclick="go('ttl_setup')"><span class="meta">3+</span><div class="emoji">🤥</div><h3>Two Truths & a Lie</h3><p>Spot the lie hiding among the truths.</p></button>
+      <button class="tile t8" onclick="openTrivia()"><span class="meta">1+</span><div class="emoji">🧠</div><h3>Trivia Showdown</h3><p>10 questions. Prove who's the smartest.</p></button>
+      <button class="tile t9" onclick="openTaboo()"><span class="meta">4+</span><div class="emoji">🚫</div><h3>Taboo</h3><p>Describe the word — without saying it.</p></button>
+    </div>
+
+    <div class="sectlbl">📡 Play online · everyone on their own phone</div>
+    <div class="tiles">
+      <button class="tile" style="background:linear-gradient(135deg,#0ea5e9,#6366f1)" onclick="openNet()"><span class="meta">NEW</span><div class="emoji">📡</div><h3>Online Rooms</h3><p>Create a room, share the code, deal private roles — no passing phones. Werewolf & Spyfall.</p></button>
+    </div>
+    <div class="foot">Works offline · No sign-in · Party pack v4 · HYPE+</div>
+  </section>
+
+  <!-- HYPE+ PREMIUM -->
+  <section class="screen" id="prem">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>HYPE+</h2></div>
+    <div class="center" style="margin-top:6px"><div style="font-size:52px">✨</div>
+      <h1 class="big" style="background:linear-gradient(90deg,#ffd200,#ff7a59,#ff2e93);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:2px">HYPE+ Premium</h1>
+      <p class="sub">Unlock every pack and turn the party up to 100.</p></div>
+    <div class="card">
+      <div class="perk">🔓 <b>All premium packs</b> — Food, Sports, Heroes, Memes, Naija & more</div>
+      <div class="perk">🔞 <b>18+ Spicy & After Dark</b> decks</div>
+      <div class="perk">🧠 <b>Every Trivia & Taboo</b> category</div>
+      <div class="perk">📡 <b>Online host powers</b> — big rooms & private codes <span class="soon">SOON</span></div>
+      <div class="perk">✏️ <b>Custom decks</b> — write your own cards <span class="soon">SOON</span></div>
+      <div class="perk">🚫 <b>No ads</b>, ever</div>
+    </div>
+    <div id="prem_tiers"></div>
+    <div class="disc" style="text-align:center;margin-top:8px">Demo unlock — real payments will be added once the app is hosted (app store or Stripe).</div>
+  </section>
+
+  <!-- CHARADES -->
+  <section class="screen" id="ch_setup">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Charades</h2></div>
+    <h1 class="big">Pick a category</h1>
+    <p class="sub">Hold the phone to your forehead. 60 seconds. Go!</p>
+    <div class="chips" id="ch_cats"></div>
+    <p class="sub" style="margin:16px 0 4px;font-size:13px;font-weight:700">How do you give the clue?</p>
+    <div class="chips" id="ch_modes"></div>
+    <div class="card center" style="margin-top:10px"><p style="margin:0;color:var(--muted);font-size:14px;line-height:1.5">Hold the phone to your forehead so you can't see it. Everyone else gives clues your way. Tap <b style="color:#3ad6a6">GOT IT</b> when guessed, <b style="color:#ff8a8a">PASS</b> to skip.</p></div>
+    <div id="ch_sip"></div>
+    <button class="btn" onclick="chStart()">Start round ▶</button>
+  </section>
+  <section class="screen" id="ch_play">
+    <div class="ch_top"><span class="ch_timer" id="ch_timer">60</span><span class="ch_score" id="ch_scoreL">0</span></div>
+    <div id="ch_modeLabel" style="position:absolute;top:56px;left:0;right:0;text-align:center;font-weight:800;color:#b9a6ff;font-size:14px;padding:0 16px"></div>
+    <div class="ch_word" id="ch_word">Ready?</div>
+    <div class="ch_hint">← PASS &nbsp;•&nbsp; GOT IT →</div>
+    <div class="ch_actions"><button class="btn pass" onclick="chMark(false)">PASS ✗</button><button class="btn got" onclick="chMark(true)">GOT IT ✓</button></div>
+  </section>
+  <section class="screen" id="ch_res">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Round over</h2></div>
+    <h1 class="big">You scored <span id="ch_final" style="color:var(--p3)">0</span></h1>
+    <p class="sub" id="ch_catname"></p>
+    <div id="ch_ressip"></div>
+    <div class="reslist" id="ch_reslist"></div>
+    <div class="row" style="margin-top:14px"><button class="btn ghost" onclick="go('ch_setup')">New category</button><button class="btn" onclick="chStart()">Play again</button></div>
+  </section>
+
+  <!-- TRUTH OR DARE -->
+  <section class="screen" id="tod_setup">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Truth or Dare</h2></div>
+    <h1 class="big">Set the vibe</h1><p class="sub">Slide from cheeky to chaotic.</p>
+    <div class="vibe" id="tod_vibe"></div>
+    <p class="sub" id="tod_vibedesc" style="margin-top:14px"></p>
+    <button class="btn" onclick="go('tod_play')">Let's go ▶</button>
+  </section>
+  <section class="screen" id="tod_play">
+    <div class="topbar"><button class="back" onclick="go('tod_setup')">‹</button><h2 id="tod_vibetag">Truth or Dare</h2></div>
+    <div class="tod empty" id="tod_card">Tap Truth or Dare to draw a card 👇</div>
+    <div class="row" style="margin-top:14px"><button class="btn" style="background:linear-gradient(135deg,#2b6fff,#7a4dff)" onclick="todDraw('truth')">TRUTH</button><button class="btn" style="background:linear-gradient(135deg,#ff2e93,#ff7a59)" onclick="todDraw('dare')">DARE</button></div>
+    <button class="btn ghost sm" style="margin-top:12px" onclick="todRandom()">🎲 Surprise me</button>
+  </section>
+
+  <!-- MOST LIKELY -->
+  <section class="screen" id="ml_setup">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Most Likely To…</h2></div>
+    <h1 class="big">Who's playing?</h1><p class="sub">Add at least 2 names. The phone keeps score.</p>
+    <div class="row" style="margin-bottom:6px"><input class="inp" id="ml_name" placeholder="Enter a name" maxlength="14" onkeydown="if(event.key==='Enter')mlAdd()"><button class="btn" style="width:auto;padding:15px 20px;margin:0" onclick="mlAdd()">Add</button></div>
+    <div class="plist" id="ml_players"></div>
+    <button class="btn" style="margin-top:auto" onclick="mlStart()">Start game ▶</button>
+  </section>
+  <section class="screen" id="ml_play">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Round <span id="ml_round">1</span>/<span id="ml_total">8</span></h2></div>
+    <div class="card"><p class="sub center" style="margin:0 0 4px">Most likely to…</p><div class="prompt" id="ml_prompt">…</div></div>
+    <p class="sub center">👉 Point, then crown the winner:</p>
+    <div class="crownrow" id="ml_crowns"></div>
+    <button class="btn ghost sm" style="margin-top:14px" onclick="mlReveal('random')">🎲 Random crown</button>
+    <div class="board" id="ml_board" style="margin-top:14px"></div>
+  </section>
+  <section class="screen" id="ml_res">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Champion</h2></div>
+    <div class="center" style="margin-top:18px;font-size:60px">👑</div>
+    <div class="winner" id="ml_winner">—</div>
+    <p class="sub center">Final scoreboard</p>
+    <div class="board" id="ml_finalboard"></div>
+    <button class="btn" style="margin-top:18px" onclick="mlStart()">Rematch</button>
+    <button class="btn ghost" onclick="go('home')">Home</button>
+  </section>
+
+  <!-- WEREWOLF -->
+  <section class="screen" id="ww_setup">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Werewolf</h2></div>
+    <h1 class="big">Gather the village</h1><p class="sub">Add 5+ players. The app deals secret roles and narrates each night.</p>
+    <button class="btn ghost sm" style="margin-bottom:8px" onclick="showHow('werewolf')">❓ How to play</button>
+    <div class="row" style="margin-bottom:6px"><input class="inp" id="ww_name" placeholder="Enter a name" maxlength="14" onkeydown="if(event.key==='Enter')wwAdd()"><button class="btn" style="width:auto;padding:15px 20px;margin:0" onclick="wwAdd()">Add</button></div>
+    <div class="plist" id="ww_players"></div>
+    <div class="card" id="ww_config" style="margin-top:14px"></div>
+    <button class="btn" id="ww_startbtn" onclick="wwStartDeal()">Deal roles ▶</button>
+  </section>
+  <section class="screen" id="ww_deal">
+    <div class="topbar"><button class="back" onclick="go('ww_setup')">‹</button><h2>Secret roles</h2></div>
+    <div id="ww_dealbox" style="flex:1;display:flex;flex-direction:column;justify-content:center"></div>
+  </section>
+  <section class="screen" id="ww_play">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2 id="ww_title">Night</h2></div>
+    <div id="ww_box" style="flex:1"></div>
+  </section>
+  <section class="screen" id="ww_res">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Game over</h2></div>
+    <div id="ww_resbox"></div>
+    <button class="btn" style="margin-top:16px" onclick="wwStartDeal()">New game · same players</button>
+    <button class="btn ghost" onclick="go('home')">Home</button>
+  </section>
+
+  <!-- SPYFALL -->
+  <section class="screen" id="spy_setup">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Spyfall</h2></div>
+    <h1 class="big">Who's in?</h1><p class="sub">Add 3+ players. One becomes the spy — everyone else shares a secret location.</p>
+    <button class="btn ghost sm" style="margin-bottom:8px" onclick="showHow('spyfall')">❓ How to play</button>
+    <div class="row" style="margin-bottom:6px"><input class="inp" id="spy_name" placeholder="Enter a name" maxlength="14" onkeydown="if(event.key==='Enter')spyAdd()"><button class="btn" style="width:auto;padding:15px 20px;margin:0" onclick="spyAdd()">Add</button></div>
+    <div class="plist" id="spy_players"></div>
+    <div class="card center" style="margin-top:14px"><p style="margin:0;color:var(--muted);font-size:14px;line-height:1.5">Pass the phone around so everyone sees their card. Then ask each other questions. <b>Villagers:</b> find the spy. <b>Spy:</b> blend in and figure out the location.</p></div>
+    <button class="btn" id="spy_startbtn" onclick="spyDeal()">Deal cards ▶</button>
+  </section>
+  <section class="screen" id="spy_deal">
+    <div class="topbar"><button class="back" onclick="go('spy_setup')">‹</button><h2>Secret cards</h2></div>
+    <div id="spy_dealbox" style="flex:1;display:flex;flex-direction:column;justify-content:center"></div>
+  </section>
+  <section class="screen" id="spy_play">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Questioning</h2></div>
+    <div class="nightbox"><div class="big2">🕵️ Find the spy</div><div class="nn">Ask each other questions. The spy is guessing the location.</div></div>
+    <div class="bigtimer" id="spy_timer">6:00</div>
+    <div id="spy_sip"></div>
+    <button class="btn" onclick="spyReveal()">Reveal the spy 🔍</button>
+    <button class="btn ghost sm" onclick="go('home')">End round</button>
+  </section>
+  <section class="screen" id="spy_res">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Reveal</h2></div>
+    <div id="spy_resbox"></div>
+    <button class="btn" style="margin-top:16px" onclick="spyDeal()">New round · same players</button>
+    <button class="btn ghost" onclick="go('home')">Home</button>
+  </section>
+
+  <!-- WOULD YOU RATHER -->
+  <section class="screen" id="wyr_play">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Would You Rather</h2></div>
+    <div class="prompt" style="font-size:20px;margin:6px 0 14px">Would you rather…</div>
+    <button class="btn" id="wyr_a" style="min-height:96px;background:linear-gradient(135deg,#f7971e,#ffd200);color:#241200" onclick="wyrPick('a')"></button>
+    <div class="center" style="font-weight:900;color:var(--muted);margin:12px 0">— OR —</div>
+    <button class="btn" id="wyr_b" style="min-height:96px;background:linear-gradient(135deg,#7a4dff,#b14dff);margin-top:0" onclick="wyrPick('b')"></button>
+    <div id="wyr_sip"></div>
+    <button class="btn ghost sm" style="margin-top:16px" onclick="wyrNext()">Next ▶</button>
+  </section>
+
+  <!-- TWO TRUTHS & A LIE -->
+  <section class="screen" id="ttl_setup">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Two Truths & a Lie</h2></div>
+    <h1 class="big">Who's playing?</h1><p class="sub">Each player secretly writes 2 truths and 1 lie. Then the group guesses the lie.</p>
+    <button class="btn ghost sm" style="margin-bottom:8px" onclick="showHow('ttl')">❓ How to play</button>
+    <div class="row" style="margin-bottom:6px"><input class="inp" id="ttl_name" placeholder="Enter a name" maxlength="14" onkeydown="if(event.key==='Enter')ttlAdd()"><button class="btn" style="width:auto;padding:15px 20px;margin:0" onclick="ttlAdd()">Add</button></div>
+    <div class="plist" id="ttl_players"></div>
+    <button class="btn" id="ttl_startbtn" onclick="ttlStart()">Start ▶</button>
+  </section>
+  <section class="screen" id="ttl_enter">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Secret entry</h2></div>
+    <div id="ttl_enterbox" style="flex:1;display:flex;flex-direction:column;justify-content:center"></div>
+  </section>
+  <section class="screen" id="ttl_guess">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2 id="ttl_guesstitle">Guess the lie</h2></div>
+    <div id="ttl_guessbox" style="flex:1"></div>
+  </section>
+
+  <!-- TRIVIA -->
+  <section class="screen" id="trv_setup">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Trivia Showdown</h2></div>
+    <h1 class="big">Pick a category</h1><p class="sub">10 questions. Shout the answer, tap to lock it in.</p>
+    <div class="chips" id="trv_cats"></div>
+    <button class="btn" onclick="trvStart()">Start quiz ▶</button>
+  </section>
+  <section class="screen" id="trv_play">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Q<span id="trv_qn">1</span>/<span id="trv_total">10</span> · <span id="trv_score" style="color:var(--p3)">0</span></h2></div>
+    <div class="card"><div class="prompt" id="trv_q" style="font-size:22px">?</div></div>
+    <div id="trv_opts" class="step"></div>
+  </section>
+  <section class="screen" id="trv_res">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Results</h2></div>
+    <div class="center" style="font-size:56px;margin-top:14px" id="trv_emoji">🎉</div>
+    <div class="winner" id="trv_final">0/10</div>
+    <p class="sub center" id="trv_msg"></p>
+    <button class="btn" onclick="trvStart()">Play again</button>
+    <button class="btn ghost" onclick="go('home')">Home</button>
+  </section>
+
+  <!-- TABOO -->
+  <section class="screen" id="tab_setup">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Taboo</h2></div>
+    <h1 class="big">Pick a category</h1><p class="sub">Describe the word WITHOUT saying it or the banned words. 60 seconds.</p>
+    <button class="btn ghost sm" style="margin-bottom:8px" onclick="showHow('taboo')">❓ How to play</button>
+    <div class="chips" id="tab_cats"></div>
+    <button class="btn" onclick="tabStart()">Start round ▶</button>
+  </section>
+  <section class="screen" id="tab_play">
+    <div class="ch_top"><span class="ch_timer" id="tab_timer">60</span><span class="ch_score" id="tab_scoreL">0</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:64px 16px 150px">
+      <div id="tab_word" style="font-size:38px;font-weight:900;margin-bottom:16px"></div>
+      <div id="tab_banned" style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:260px"></div>
+    </div>
+    <div class="ch_actions"><button class="btn pass" onclick="tabMark(false)">SKIP ✗</button><button class="btn got" onclick="tabMark(true)">GOT IT ✓</button></div>
+  </section>
+  <section class="screen" id="tab_res">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Round over</h2></div>
+    <h1 class="big">You got <span id="tab_final" style="color:var(--p3)">0</span></h1>
+    <div class="reslist" id="tab_reslist"></div>
+    <div class="row" style="margin-top:14px"><button class="btn ghost" onclick="go('tab_setup')">New category</button><button class="btn" onclick="tabStart()">Play again</button></div>
+  </section>
+
+  <!-- ONLINE ROOMS -->
+  <section class="screen" id="net_home">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Online Rooms</h2></div>
+    <h1 class="big">Play online 📡</h1>
+    <p class="sub">Everyone on their own phone. Create a room, share the code, and roles stay private — no passing.</p>
+    <input class="inp" id="net_name" placeholder="Your name" maxlength="14" style="margin-bottom:12px">
+    <div class="card">
+      <p class="sub" style="margin:0 0 8px">Create a room</p>
+      <div class="chips" id="net_gamesel"><button class="chip on" data-g="werewolf" onclick="setNetGame('werewolf')">🐺 Werewolf</button><button class="chip" data-g="spyfall" onclick="setNetGame('spyfall')">🕵️ Spyfall</button><button class="chip" data-g="trivia" onclick="setNetGame('trivia')">🧠 Live Trivia</button><button class="chip" data-g="wyr" onclick="setNetGame('wyr')">🤔 Would You Rather</button><button class="chip" data-g="mostlikely" onclick="setNetGame('mostlikely')">👑 Most Likely</button></div>
+      <button class="btn" onclick="netCreate()">Create room ▶</button>
+    </div>
+    <div class="card">
+      <p class="sub" style="margin:0 0 8px">Join a room</p>
+      <div class="row"><input class="inp" id="net_code" placeholder="CODE" maxlength="4" style="text-transform:uppercase"><button class="btn" style="width:auto;padding:15px 22px;margin:0" onclick="netJoin()">Join</button></div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="netScan()">📷 Scan QR code</button>
+    </div>
+    <p class="sub center" id="net_msg" style="color:#ff9a9a;min-height:18px"></p>
+  </section>
+  <section class="screen" id="net_room">
+    <div class="topbar"><button class="back" onclick="netLeave()">‹</button><h2 id="net_roomtitle">Room</h2></div>
+    <div id="net_box" style="flex:1"></div>
+  </section>
+  <section class="screen" id="net_setup">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>Online setup</h2></div>
+    <h1 class="big">Almost there 🔌</h1>
+    <p class="sub">Online rooms run on a free Firebase database. Once it's connected, this section turns on automatically.</p>
+    <div class="card"><div class="perk">1️⃣ Create a free project at <b>console.firebase.google.com</b></div><div class="perk">2️⃣ Add a <b>Realtime Database</b> (test mode)</div><div class="perk">3️⃣ Paste the config into the app's setup block</div><div class="perk">4️⃣ Host the file on a public link</div></div>
+    <p class="sub center" style="font-size:13px">Follow the setup guide, then reopen this.</p>
+    <button class="btn ghost" onclick="go('home')">Back</button>
+  </section>
+  <section class="screen" id="net_scan">
+    <div class="topbar"><button class="back" onclick="stopScan();go('net_home')">‹</button><h2>Scan QR</h2></div>
+    <p class="sub center">Point your camera at the host's QR code.</p>
+    <div style="position:relative;border-radius:18px;overflow:hidden;background:#000;aspect-ratio:1/1;max-width:340px;margin:0 auto;width:100%">
+      <video id="scan_video" style="width:100%;height:100%;object-fit:cover" muted playsinline></video>
+      <div style="position:absolute;inset:14%;border:3px solid #00e0c6;border-radius:16px;pointer-events:none"></div>
+    </div>
+    <canvas id="scan_canvas" style="display:none"></canvas>
+    <p class="sub center" id="scan_status" style="margin-top:14px">Looking for a code…</p>
+    <button class="btn ghost" onclick="stopScan();go('net_home')">Cancel</button>
+  </section>
+
+  <section class="screen" id="wishes">
+    <div class="topbar"><button class="back" onclick="go('home')">‹</button><h2>💌 Birthday Wishes</h2></div>
+    <h1 class="big">Wish Okechukwu a happy birthday 🎂</h1>
+    <p class="sub">Leave a message — everyone at the party can see them here, live.</p>
+    <input class="inp" id="wish_name" placeholder="Your name" maxlength="24" style="margin-bottom:8px">
+    <textarea class="inp" id="wish_msg" placeholder="Write your birthday wish…" maxlength="240" style="height:84px;resize:none;margin-bottom:8px"></textarea>
+    <button class="btn" onclick="wishPost()">Post your wish 💌</button>
+    <button class="btn ghost sm" style="margin-top:10px" onclick="wallOpen()">📺 Big-screen view (for a TV)</button>
+    <p class="sub center" id="wish_status" style="min-height:16px;font-size:13px"></p>
+    <div id="wish_list" style="margin-top:6px"></div>
+  </section>
+
+</div>
+
+<script>
+/* ===== ROUTER + AGE ===== */
+let isAdult=false;
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function setAge(adult){isAdult=adult;
+  document.getElementById('modeText').textContent=adult?'🔥 18+ mode':'🧃 All-ages mode';
+  if(!adult)drinking=false;
+  audioUnlock();sfx('reveal');updateSettings();go('home');
+  if(pendingRoom&&netOK){openNet();const cc=document.getElementById('net_code');if(cc)cc.value=pendingRoom;netMsg('Enter your name, then tap Join to enter room '+pendingRoom+'.');pendingRoom='';}
+  burst(innerWidth/2,innerHeight*0.35,70);}
+
+/* ===== SETTINGS / SOUND ===== */
+let sfxOn=true,musicOn=false,drinking=false;
+function updateSettings(){
+  document.getElementById('setSfx').classList.toggle('on',sfxOn);
+  document.getElementById('setMusic').classList.toggle('on',musicOn);
+  const d=document.getElementById('setDrink');d.style.display=isAdult?'':'none';d.classList.toggle('on',drinking);
+  const sp=document.getElementById('setPrem');if(sp){sp.textContent=premium?'✨ HYPE+ ✓':'✨ Go Premium';sp.classList.toggle('on',premium);}
+}
+function toggleSfx(){sfxOn=!sfxOn;if(sfxOn){audioUnlock();sfx('tap');}updateSettings();}
+function toggleMusic(){if(musicOn){musicStop();}else{audioUnlock();musicStart();}updateSettings();}
+function toggleDrink(){if(!isAdult)return;drinking=!drinking;if(drinking)sfx('good');updateSettings();}
+function sipHtml(t){return drinking?'<div class="sip">🍻 '+t+'</div>':'';}
+
+/* ===== PREMIUM (HYPE+) ===== */
+let premium=false;try{premium=localStorage.getItem('hype_prem')==='1';}catch(e){}
+const isAndroidApp=(function(){try{return new URLSearchParams(location.search).get('app')==='android';}catch(e){return false;}})();
+const PREMIUM_PACKS=new Set(["🍔 Food & Drink","⚽ Sports","🦸 Superheroes","📺 TV & Cartoons","😂 Memes & Internet","🌍 Around the World","🎮 Video Games","🇳🇬 Naija Vibes","🍸 Nightlife","🎬 Entertainment","🔬 Science","🌟 Famous People","🐘 Animals & Nature"]);
+function isLocked(c){return PREMIUM_PACKS.has(c)&&!(premium&&premiumLoaded);}
+function openPrem(){renderPrem();go('prem');}
+function setPremium(v){premium=v;try{localStorage.setItem('hype_prem',v?'1':'0');}catch(e){}if(v&&typeof loadPremiumContent==='function'&&userEmail&&!premiumLoaded)loadPremiumContent(userEmail);updateSettings();renderPrem();if(v){sfx('crown');burst(innerWidth/2,innerHeight*0.3,140);}else sfx('tap');}
+function renderPrem(){const box=document.getElementById('prem_tiers');if(!box)return;
+  if(premium){box.innerHTML='<div class="card center" style="border:2px solid #ffd200"><div style="font-size:34px">🎉</div><div style="font-weight:900;font-size:20px;margin:6px 0">You\'re a HYPE+ member!</div><p class="sub" style="margin:0">Every pack is unlocked. Enjoy the party.</p></div><button class="btn ghost sm" onclick="setPremium(false)">Lock again (demo)</button>';}
+  else if(isAndroidApp){box.innerHTML='<input class="inp" id="prem_email" placeholder="your@email.com" style="margin-bottom:10px"><button class="btn" style="background:linear-gradient(135deg,#ffd200,#ff7a59);color:#241200" onclick="appBuy(\'premium\')">⚡ Unlock HYPE+ with Google Play</button><p class="sub center" id="prem_msg" style="margin-top:8px;font-size:13px;color:#ff9a9a;min-height:16px"></p><button class="btn ghost sm" style="margin-top:8px" onclick="netRestoreEntitlement()">↻ Restore purchase</button>';}
+  else{box.innerHTML='<input class="inp" id="prem_email" placeholder="your@email.com" style="margin-bottom:10px"><div class="row"><button class="btn ghost" style="flex:1" onclick="payPremium(150000,\'Monthly\')">Monthly<br><span style="font-weight:600;font-size:12px;color:var(--muted)">₦1,500 / mo</span></button><button class="btn" style="flex:1;background:linear-gradient(135deg,#ffd200,#ff7a59);color:#241200" onclick="payPremium(800000,\'Yearly\')">Yearly<br><span style="font-weight:700;font-size:12px">₦8,000 best value</span></button></div><p class="sub center" id="prem_msg" style="margin-top:8px;font-size:13px;color:#ff9a9a;min-height:16px"></p><button class="btn ghost sm" onclick="netRestoreEntitlement()">↻ Restore purchase</button>';}}
+
+let AC=null;
+function audioUnlock(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}return AC;}
+function tone(f,dur,type,vol,when){const ac=AC;if(!ac)return;const t=when||ac.currentTime;const o=ac.createOscillator(),g=ac.createGain();o.type=type||'sine';o.frequency.value=f;o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol||0.18,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.start(t);o.stop(t+dur+0.03);}
+function sfx(name){const ac=audioUnlock();if(!ac||!sfxOn)return;const n=ac.currentTime;
+  if(name==='tap')tone(420,0.08,'triangle',0.12);
+  else if(name==='good'){tone(523,0.12,'triangle',0.18);tone(784,0.16,'triangle',0.18,n+0.1);}
+  else if(name==='bad')tone(150,0.28,'sawtooth',0.16);
+  else if(name==='crown'){[523,659,784,1047].forEach((f,i)=>tone(f,0.18,'triangle',0.16,n+i*0.08));}
+  else if(name==='whoosh')tone(280,0.22,'sine',0.1);
+  else if(name==='reveal'){tone(392,0.14,'triangle',0.16);tone(587,0.2,'triangle',0.16,n+0.11);}}
+let musicTimer=null,mBeat=0;
+function musicStart(){const ac=audioUnlock();if(!ac)return;musicOn=true;mBeat=0;const bpm=122,spb=60/bpm;
+  const bass=[110,110,146.83,98],arp=[440,554.37,659.25,554.37];
+  musicTimer=setInterval(()=>{if(!musicOn||!AC)return;const t=AC.currentTime+0.03;
+    const k=AC.createOscillator(),kg=AC.createGain();k.frequency.setValueAtTime(150,t);k.frequency.exponentialRampToValueAtTime(50,t+0.1);kg.gain.setValueAtTime(0.22,t);kg.gain.exponentialRampToValueAtTime(0.001,t+0.15);k.connect(kg);kg.connect(AC.destination);k.start(t);k.stop(t+0.16);
+    tone(bass[mBeat%4],0.2,'sawtooth',0.05,t);
+    tone(arp[mBeat%4],0.12,'triangle',0.04,t+spb/2);
+    mBeat++;},spb*1000);}
+function musicStop(){musicOn=false;if(musicTimer)clearInterval(musicTimer);musicTimer=null;}
+
+/* ===== PWA manifest (best-effort, for hosted use) ===== */
+try{
+  const ICON="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><radialGradient id='g' cx='42%' cy='34%' r='75%'><stop offset='0' stop-color='#00e0c6'/><stop offset='45%' stop-color='#7a4dff'/><stop offset='100%' stop-color='#ff2e93'/></radialGradient></defs><rect width='512' height='512' rx='112' fill='#0b0517'/><circle cx='256' cy='262' r='148' fill='url(#g)'/><g stroke='#0b0517' stroke-width='6' opacity='.45' fill='none'><line x1='108' y1='262' x2='404' y2='262'/><line x1='256' y1='114' x2='256' y2='410'/><path d='M256 114 A148 148 0 0 1 256 410'/><path d='M256 114 A100 148 0 0 1 256 410'/><path d='M256 114 A52 148 0 0 1 256 410'/><path d='M108 262 A148 100 0 0 0 404 262'/><path d='M108 262 A148 52 0 0 0 404 262'/></g><rect x='250' y='44' width='12' height='58' fill='#b3a8d8'/><circle cx='256' cy='40' r='13' fill='#ffb800'/></svg>";
+  const iconURL=URL.createObjectURL(new Blob([ICON],{type:'image/svg+xml'}));
+  document.getElementById('favIcon').href=iconURL;document.getElementById('appleIcon').href=iconURL;
+  const mani={name:"HYPE Party Games",short_name:"HYPE",start_url:".",display:"standalone",background_color:"#0b0517",theme_color:"#0b0517",icons:[{src:iconURL,sizes:"any",type:"image/svg+xml",purpose:"any maskable"}]};
+  const ml=document.createElement('link');ml.rel='manifest';ml.href=URL.createObjectURL(new Blob([JSON.stringify(mani)],{type:'application/json'}));document.head.appendChild(ml);
+}catch(e){}
+
+/* ===== CONFETTI ===== */
+const cvs=document.getElementById('confetti'),ctx=cvs.getContext('2d');let parts=[],looping=false;
+const CFX=['#ff2e93','#7a4dff','#00e0c6','#ffb800','#ff7a59','#ffffff'];
+function fit(){cvs.width=innerWidth;cvs.height=innerHeight;}fit();addEventListener('resize',fit);
+function burst(x,y,n){n=n||90;for(let i=0;i<n;i++)parts.push({x,y,vx:(Math.random()-.5)*9,vy:Math.random()*-9-3,g:.34,size:Math.random()*7+4,c:CFX[Math.floor(Math.random()*CFX.length)],life:55+Math.random()*30,rot:Math.random()*6,vr:(Math.random()-.5)*.4});if(!looping){looping=true;requestAnimationFrame(cloop);}}
+function cloop(){ctx.clearRect(0,0,cvs.width,cvs.height);for(const p of parts){p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.life--;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*.6);ctx.restore();}parts=parts.filter(p=>p.life>0&&p.y<cvs.height+40);if(parts.length)requestAnimationFrame(cloop);else{looping=false;ctx.clearRect(0,0,cvs.width,cvs.height);}}
+function flash(c){const f=document.getElementById('flash');f.style.background=c;f.classList.add('show');setTimeout(()=>f.classList.remove('show'),120);}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ===== DATA ===== */
+const CH_BASE={
+  "🎬 Movies":["Titanic","The Lion King","Avatar","Frozen","Jurassic Park","Star Wars","Harry Potter","The Matrix","Spider-Man","Black Panther","Toy Story","Shrek","The Avengers","Inception","Finding Nemo","Gladiator","Mean Girls","King of Boys","The Wedding Party","Pirates of the Caribbean"],
+  "🌟 Celebrities":["Beyoncé","Drake","Rihanna","Cristiano Ronaldo","Lionel Messi","Taylor Swift","Will Smith","Oprah","Burna Boy","Davido","Wizkid","Tems","Tiwa Savage","Asake","Adele","Elon Musk","Snoop Dogg","Nicki Minaj","Mr Eazi","Kim Kardashian"],
+  "🐘 Animals":["Elephant","Penguin","Kangaroo","Giraffe","Monkey","Chicken","Snake","Shark","Dolphin","Lion","Frog","Eagle","Crab","Horse","Gorilla","Octopus","Goat","Tortoise","Peacock","Bat"],
+  "🎭 Actions":["Dancing","Swimming","Cooking","Driving","Sleeping","Texting","Taking a selfie","Boxing","Fishing","Crying","Brushing teeth","Riding a bike","Playing guitar","Doing laundry","Eating spaghetti","Yawning","Sneezing","Praying","Juggling","Tying shoelaces"],
+  "🕺 Dance Floor":["Twerking","Drop it low","The Shoki","Gangnam Style","The Moonwalk","Air guitar","The Floss","DJ scratching","The Catwalk","Selfie pose","The Zanku","Hands in the air","Fist pump","The Robot","Body roll","Crowd surfing","Slow whine","Confetti drop","Spin the bottle","Karaoke"],
+  "🍔 Food & Drink":[],"⚽ Sports":[],"🦸 Superheroes":[],"📺 TV & Cartoons":[],"😂 Memes & Internet":[],"🌍 Around the World":[],"🎮 Video Games":[],"🇳🇬 Naija Vibes":[]};
+const CH_ADULT={"🍸 Nightlife":[]};
+
+const TOD_VIBES=[
+  {name:"Chill",adult:false,desc:"Wholesome and easy — great for warming up. 😇",
+   truth:["What's your most-used emoji?","Guilty-pleasure song?","Last thing you Googled?","First celebrity crush?","Dream vacation spot?","A hidden talent nobody here knows?","Your comfort food?","Phone wallpaper right now?"],
+   dare:["Best dance move for 10 seconds.","Speak in an accent until your next turn.","Take a group selfie.","Do 10 jumping jacks.","Whisper everything until someone else's turn.","Let the group pick your nickname tonight.","Best animal impression.","Compliment everyone in the room."]},
+  {name:"Daring",adult:false,desc:"Bolder questions, cheekier dares — still all-ages. 😏",
+   truth:["Who here would you swap lives with for a day?","Most embarrassing school/work moment?","Biggest fib to get out of plans?","A secret talent you're a little proud of?","Cringiest thing on your old social media?","Who's your secret celebrity crush?"],
+   dare:["Show the last photo in your camera roll.","Do an impression of someone in the room.","Sing the chorus of the last song you played.","Talk like a movie villain until your next turn.","Let the group give you a nickname for the night.","Do 15 squats reciting the alphabet."]},
+  {name:"Spicy 🔞",adult:true,desc:"Flirty, bold and a little risky — 18+ only. 🌶️",truth:[],dare:[]},
+  {name:"After Dark 🔞",adult:true,desc:"Wild nightlife energy, no brakes — 18+ only. 🪩🔥",truth:[],dare:[]}];
+
+const ML_BASE=["…become TikTok famous","…survive a zombie apocalypse","…show up late to their own wedding","…become a millionaire","…start a dance battle","…cry during a movie","…get lost using Google Maps","…eat the last slice without asking","…fall asleep at the party","…forget their own birthday","…win a karaoke contest","…adopt 10 pets","…move abroad on a whim","…laugh at the wrong moment","…lose their phone tonight","…become a stand-up comedian","…take the best selfies","…ghost the group chat","…become the boss one day","…go viral by accident","…argue over who makes the best jollof","…dance till sunrise","…marry a celebrity","…win a staring contest"];
+const ML_ADULT=[];
+
+const SPY_LOC=[
+ {n:"🏖️ Beach",roles:["Lifeguard","Surfer","Ice-cream seller","Tourist","Beach DJ","Photographer"]},
+ {n:"🎰 Casino",roles:["Dealer","High roller","Bartender","Security","Cocktail server","Pit boss"]},
+ {n:"✈️ Airplane",roles:["Pilot","Flight attendant","First-class passenger","Air marshal","Nervous flyer","Tourist"]},
+ {n:"🏥 Hospital",roles:["Surgeon","Nurse","Patient","Visitor","Receptionist","Paramedic"]},
+ {n:"🏫 School",roles:["Teacher","Student","Principal","Janitor","Cafeteria cook","Late kid"]},
+ {n:"🪩 Nightclub",roles:["DJ","Bouncer","Bartender","Dancer","VIP guest","Lost partygoer"]},
+ {n:"🍽️ Restaurant",roles:["Chef","Waiter","Customer","Food critic","Dishwasher","Host"]},
+ {n:"🚀 Space Station",roles:["Astronaut","Commander","Scientist","Engineer","Ground control","Repair tech"]},
+ {n:"🏴‍☠️ Pirate Ship",roles:["Captain","First mate","Cook","Cannon loader","Lookout","Map keeper"]},
+ {n:"🏨 Hotel",roles:["Receptionist","Bellboy","Guest","Housekeeper","Manager","Room-service waiter"]},
+ {n:"🏦 Bank",roles:["Teller","Manager","Security guard","Customer","Auditor","Cleaner"]},
+ {n:"🎬 Movie Theater",roles:["Ticket seller","Projectionist","Usher","Moviegoer","Snack-bar clerk","Critic"]},
+ {n:"🚆 Train",roles:["Conductor","Passenger","Ticket inspector","Snack-cart vendor","Driver","Commuter"]},
+ {n:"🦁 Zoo",roles:["Zookeeper","Visitor","Vet","Ticket seller","Tour guide","Photographer"]},
+ {n:"🛳️ Cruise Ship",roles:["Captain","Entertainer","Passenger","Waiter","Lifeguard","Engineer"]},
+ {n:"💍 Wedding",roles:["Bride","Groom","Best man","Wedding planner","Guest","Wedding DJ"]}];
+
+/* ===== CHARADES ===== */
+const CH_MODES=[{k:'act',label:'🎭 Act it out',play:'🎭 ACT IT OUT — no talking, no sounds!'},{k:'dance',label:'💃 Dance only',play:'💃 DANCE ONLY — moves, no words!'},{k:'speak',label:'🗣️ Describe',play:'🗣️ DESCRIBE IT — talk, but never say the word!'}];
+let chCat=null,chMode=CH_MODES[0],chDeck=[],chIdx=0,chScore=0,chResults=[],chTimer=null,chTimeLeft=60,chRunning=false,chCatList={};
+function openCharades(){chCatList=Object.assign({},CH_BASE,isAdult?CH_ADULT:{});
+  const wrap=document.getElementById('ch_cats');wrap.innerHTML='';
+  Object.keys(chCatList).forEach((c,i)=>{const b=document.createElement('button');const lk=isLocked(c);b.className='chip'+(i===0?' on':'')+(lk?' lock':'');b.textContent=(lk?'🔒 ':'')+c;
+    b.onclick=lk?()=>{sfx('tap');openPrem();}:()=>{sfx('tap');document.querySelectorAll('#ch_cats .chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');chCat=c;};wrap.appendChild(b);});
+  chCat=Object.keys(chCatList)[0];
+  const mw=document.getElementById('ch_modes');mw.innerHTML='';
+  CH_MODES.forEach((m,i)=>{const b=document.createElement('button');b.className='chip'+(i===0?' on':'');b.textContent=m.label;
+    b.onclick=()=>{sfx('tap');document.querySelectorAll('#ch_modes .chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');chMode=m;};mw.appendChild(b);});
+  chMode=CH_MODES[0];
+  document.getElementById('ch_sip').innerHTML=sipHtml("Drink once for every word you PASS this round.");
+  go('ch_setup');}
+function chStart(){chDeck=shuffle(chCatList[chCat]);chIdx=0;chScore=0;chResults=[];chTimeLeft=60;chRunning=false;go('ch_play');
+  document.getElementById('ch_modeLabel').textContent=chMode.play;
+  document.getElementById('ch_scoreL').textContent='0';const wordEl=document.getElementById('ch_word');document.getElementById('ch_timer').textContent='';
+  let n=3;wordEl.innerHTML='<span class="count">3</span>';
+  const cd=setInterval(()=>{n--;if(n>0){wordEl.innerHTML='<span class="count">'+n+'</span>';sfx('tap');}
+    else{clearInterval(cd);wordEl.innerHTML='<span class="count">GO!</span>';sfx('whoosh');burst(innerWidth/2,innerHeight*0.4,60);
+      setTimeout(()=>{chRunning=true;chNext();chTick();},600);}},800);}
+function chTick(){document.getElementById('ch_timer').textContent=chTimeLeft;chTimer=setInterval(()=>{chTimeLeft--;document.getElementById('ch_timer').textContent=chTimeLeft;if(chTimeLeft<=0)chEnd();},1000);}
+function chNext(){if(chIdx>=chDeck.length)chDeck=chDeck.concat(shuffle(chCatList[chCat]));document.getElementById('ch_word').textContent=chDeck[chIdx];}
+function chMark(got){if(!chRunning)return;chResults.push({word:chDeck[chIdx],got});
+  if(got){chScore++;document.getElementById('ch_scoreL').textContent=chScore;burst(innerWidth*0.75,innerHeight*0.85,16);sfx('good');}else sfx('bad');
+  flash(got?'#23d18b':'#ff5d5d');chIdx++;chNext();}
+function chEnd(){clearInterval(chTimer);chRunning=false;document.getElementById('ch_final').textContent=chScore;document.getElementById('ch_catname').textContent=chCat;
+  const passes=chResults.filter(r=>!r.got).length;
+  document.getElementById('ch_ressip').innerHTML=sipHtml("You passed "+passes+" word"+(passes===1?'':'s')+" — that's "+passes+" sip"+(passes===1?'':'s')+"!");
+  const list=document.getElementById('ch_reslist');list.innerHTML='';
+  chResults.forEach(r=>{const d=document.createElement('div');d.className='resitem';d.innerHTML='<span>'+esc(r.word)+'</span><span class="'+(r.got?'v':'x')+'">'+(r.got?'✓':'✗')+'</span>';list.appendChild(d);});
+  if(!chResults.length)list.innerHTML='<div class="resitem"><span style="color:var(--muted)">No cards played</span><span></span></div>';
+  if(chScore>0)burst(innerWidth/2,innerHeight*0.3,100);go('ch_res');}
+document.addEventListener('keydown',e=>{if(document.getElementById('ch_play').classList.contains('active')&&chRunning){if(e.key==='ArrowRight')chMark(true);if(e.key==='ArrowLeft')chMark(false);}});
+
+/* ===== TRUTH OR DARE ===== */
+let todVibe=null;
+function openTod(){const list=TOD_VIBES.filter(v=>!v.adult||isAdult);const wrap=document.getElementById('tod_vibe');wrap.innerHTML='';
+  list.forEach((v,i)=>{const b=document.createElement('button');const lk=v.adult&&!(premium&&premiumLoaded);b.className='chip'+(i===0?' on':'')+(lk?' lock':'');b.textContent=(lk?'🔒 ':'')+v.name;
+    b.onclick=lk?()=>{sfx('tap');openPrem();}:()=>{sfx('tap');document.querySelectorAll('#tod_vibe .chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');todVibe=v;document.getElementById('tod_vibedesc').textContent=v.desc;};wrap.appendChild(b);});
+  todVibe=list[0];document.getElementById('tod_vibedesc').textContent=list[0].desc;go('tod_setup');}
+function todDraw(type){const pool=todVibe[type];const text=pool[Math.floor(Math.random()*pool.length)];const card=document.getElementById('tod_card');card.className='tod '+type;
+  card.innerHTML='<div class="lbl">'+type.toUpperCase()+'</div>'+esc(text)+(drinking?'<div class="sipinline">🍻 Refuse? Take 2 sips.</div>':'');
+  document.getElementById('tod_vibetag').textContent=todVibe.name+' mode';sfx('reveal');if(type==='dare')burst(innerWidth/2,innerHeight*0.35,40);}
+function todRandom(){todDraw(Math.random()<0.5?'truth':'dare');}
+
+/* ===== MOST LIKELY ===== */
+let mlPlayers=[],mlScores={},mlRound=0,mlDeck=[],mlTotal=8,mlCrowned=false;
+function mlAdd(){const inp=document.getElementById('ml_name');const name=inp.value.trim();if(!name||mlPlayers.length>=12||mlPlayers.some(p=>p.toLowerCase()===name.toLowerCase())){inp.value='';return;}mlPlayers.push(name);inp.value='';inp.focus();sfx('tap');mlRenderPlayers();}
+function mlRemove(i){mlPlayers.splice(i,1);mlRenderPlayers();}
+function mlRenderPlayers(){const w=document.getElementById('ml_players');w.innerHTML='';mlPlayers.forEach((p,i)=>{const d=document.createElement('div');d.className='ptag';d.innerHTML='<span>'+esc(p)+'</span><span class="rm" onclick="mlRemove('+i+')">✕</span>';w.appendChild(d);});}
+function mlStart(){if(mlPlayers.length<2){go('ml_setup');return;}mlScores={};mlPlayers.forEach(p=>mlScores[p]=0);const pool=ML_BASE.concat((isAdult&&premium&&premiumLoaded)?ML_ADULT:[]);mlDeck=shuffle(pool);mlRound=0;mlTotal=Math.min(8,mlDeck.length);document.getElementById('ml_total').textContent=mlTotal;mlNextRound();go('ml_play');}
+function mlNextRound(){if(mlRound>=mlTotal){mlFinish();return;}mlCrowned=false;document.getElementById('ml_round').textContent=mlRound+1;document.getElementById('ml_prompt').textContent=mlDeck[mlRound];
+  const cr=document.getElementById('ml_crowns');cr.innerHTML='';mlPlayers.forEach((p,i)=>{const b=document.createElement('button');b.className='crownbtn';b.textContent='👑 '+p;b.onclick=()=>mlReveal(i);cr.appendChild(b);});mlRenderBoard('ml_board');}
+function mlReveal(who){if(mlCrowned)return;mlCrowned=true;const pick=who==='random'?mlPlayers[Math.floor(Math.random()*mlPlayers.length)]:mlPlayers[who];mlScores[pick]++;burst(innerWidth/2,innerHeight*0.3,60);sfx('crown');mlRenderBoard('ml_board');
+  document.getElementById('ml_prompt').innerHTML='👑 <span style="color:var(--p4)">'+esc(pick)+'</span>!'+(drinking?'<div class="sip" style="font-size:13px">🍻 '+esc(pick)+' takes a drink!</div>':'');
+  document.getElementById('ml_crowns').innerHTML='<button class="btn" style="width:100%" onclick="mlAdvance()">Next round ▶</button>';}
+function mlAdvance(){mlRound++;mlNextRound();}
+function mlRenderBoard(id){const max=Math.max(0,...Object.values(mlScores));const sorted=[...mlPlayers].sort((a,b)=>mlScores[b]-mlScores[a]);const w=document.getElementById(id);w.innerHTML='';sorted.forEach(p=>{const d=document.createElement('div');d.className='brow'+(mlScores[p]===max&&max>0?' lead':'');d.innerHTML='<span>'+esc(p)+'</span><span class="pts">'+mlScores[p]+'</span>';w.appendChild(d);});}
+function mlFinish(){const max=Math.max(...Object.values(mlScores));const winners=mlPlayers.filter(p=>mlScores[p]===max);document.getElementById('ml_winner').textContent=winners.length>1?winners.join(' & ')+' (tie!)':winners[0];mlRenderBoard('ml_finalboard');go('ml_res');sfx('crown');burst(innerWidth/2,innerHeight*0.3,140);}
+
+/* ===== WEREWOLF ===== */
+const ROLE={Werewolf:{e:'🐺',g:"Secretly eliminate a villager each night. Don't get caught."},Villager:{e:'🧑‍🌾',g:"Find the werewolves and vote them out by day."},Seer:{e:'🔮',g:"Each night, secretly learn if one player is a werewolf."},Doctor:{e:'🩺',g:"Each night, choose one player to protect from the wolves."}};
+let wwP=[],wwCfg={wolves:1,seer:true,doctor:true,wolvesManual:false},wwGame=[],wwDealIdx=0,wwNight=1,wwStep='',wwVictim=-1,wwSaved=-1,wwSeerIdx=-1,wwDead=null,wwLynch=null;
+function wwAdd(){const inp=document.getElementById('ww_name');const n=inp.value.trim();if(!n||wwP.length>=16||wwP.some(p=>p.toLowerCase()===n.toLowerCase())){inp.value='';return;}wwP.push(n);inp.value='';inp.focus();sfx('tap');if(!wwCfg.wolvesManual)wwCfg.wolves=wwRec(wwP.length);wwRenderSetup();}
+function wwRemove(i){wwP.splice(i,1);if(!wwCfg.wolvesManual)wwCfg.wolves=wwRec(wwP.length);wwRenderSetup();}
+function wwRec(n){return n>=12?3:n>=8?2:1;}
+function wwRenderSetup(){const pl=document.getElementById('ww_players');pl.innerHTML='';wwP.forEach((p,i)=>{const d=document.createElement('div');d.className='ptag';d.innerHTML='<span>'+esc(p)+'</span><span class="rm" onclick="wwRemove('+i+')">✕</span>';pl.appendChild(d);});
+  const n=wwP.length,maxW=Math.max(1,n-2);if(wwCfg.wolves>maxW)wwCfg.wolves=maxW;
+  document.getElementById('ww_config').innerHTML=
+   '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font-weight:800">🐺 Werewolves</span><span style="display:flex;align-items:center;gap:14px"><button class="crownbtn" onclick="wwWolf(-1)">−</button><b style="font-size:20px;min-width:18px;text-align:center;display:inline-block">'+wwCfg.wolves+'</b><button class="crownbtn" onclick="wwWolf(1)">+</button></span></div>'+
+   '<div class="chips"><button class="chip'+(wwCfg.seer?' on':'')+'" onclick="wwTog(\'seer\')">🔮 Seer</button><button class="chip'+(wwCfg.doctor?' on':'')+'" onclick="wwTog(\'doctor\')">🩺 Doctor</button></div>'+
+   '<p class="sub" style="margin:10px 0 0;font-size:13px">'+(n<5?'Add at least 5 players for a good game.':('Suggested for '+n+' players: '+wwRec(n)+' werewolf'+(wwRec(n)>1?'s':'')+'.'))+'</p>';
+  document.getElementById('ww_startbtn').disabled=n<4;}
+function wwWolf(d){wwCfg.wolvesManual=true;const maxW=Math.max(1,wwP.length-2);wwCfg.wolves=Math.min(maxW,Math.max(1,wwCfg.wolves+d));sfx('tap');wwRenderSetup();}
+function wwTog(k){wwCfg[k]=!wwCfg[k];sfx('tap');wwRenderSetup();}
+function wwStartDeal(){const n=wwP.length;if(n<4){go('ww_setup');return;}let roles=[];for(let i=0;i<wwCfg.wolves;i++)roles.push('Werewolf');if(wwCfg.seer)roles.push('Seer');if(wwCfg.doctor)roles.push('Doctor');while(roles.length<n)roles.push('Villager');roles=shuffle(roles).slice(0,n);wwGame=wwP.map((name,i)=>({name,role:roles[i],alive:true}));wwDealIdx=0;wwNight=1;go('ww_deal');wwRenderDeal();}
+function wwRenderDeal(){const box=document.getElementById('ww_dealbox');if(wwDealIdx>=wwGame.length){box.innerHTML='<div class="nightbox"><div class="big2">All roles dealt 🤫</div><div class="nn">Everyone knows who they are. Time for night to fall.</div></div><button class="btn" onclick="wwBeginNight()">🌙 Begin Night 1</button>';return;}
+  const p=wwGame[wwDealIdx];box.innerHTML='<div class="card center"><p class="sub" style="margin:0 0 6px">Player '+(wwDealIdx+1)+' of '+wwGame.length+'</p><div style="font-size:26px;font-weight:900;margin-bottom:4px">Pass the phone to</div><div style="font-size:30px;font-weight:900;color:var(--p3)">'+esc(p.name)+'</div></div><button class="btn" onclick="wwShowRole()">👀 I\'m '+esc(p.name)+' — reveal my role</button>';}
+function wwShowRole(){const p=wwGame[wwDealIdx],m=ROLE[p.role];sfx('reveal');document.getElementById('ww_dealbox').innerHTML='<div class="rolecard"><div class="re">'+m.e+'</div><div class="rn">'+p.role+'</div><div class="rg">'+m.g+'</div></div><button class="btn ghost" onclick="wwHidePass()">🙈 Hide & pass ▶</button>';}
+function wwHidePass(){wwDealIdx++;wwRenderDeal();}
+function wwRoleAlive(r){return wwGame.some(p=>p.alive&&p.role===r);}
+function wwBeginNight(){wwVictim=-1;wwSaved=-1;wwStep='intro';go('ww_play');wwRender();}
+function wwBtns(h){return wwGame.map((p,i)=>!p.alive?'':'<button class="crownbtn" onclick="'+h+'('+i+')">'+esc(p.name)+'</button>').join('');}
+function wwBoard(){return '<div class="board">'+wwGame.map(p=>'<div class="rerow'+(p.alive?'':' dead')+'"><span>'+(p.alive?'🟢':'💀')+' '+esc(p.name)+'</span><span class="dr">'+(p.alive?'alive':p.role+' '+ROLE[p.role].e)+'</span></div>').join('')+'</div>';}
+function wwRender(){const box=document.getElementById('ww_box'),title=document.getElementById('ww_title');
+  if(wwStep==='intro'){title.textContent='Night '+wwNight;box.innerHTML='<div class="nightbox"><div class="big2">🌙 Night '+wwNight+' falls</div><div class="nn">Everyone, close your eyes.</div></div><p class="narr">Narrator reads aloud</p><button class="btn" onclick="wwStep=\'wolves\';wwRender()">🐺 Wake the werewolves</button>';}
+  else if(wwStep==='wolves'){title.textContent='Night '+wwNight;box.innerHTML='<div class="nightbox"><div class="big2">🐺 Werewolves, awaken</div><div class="nn">Silently agree on tonight\'s victim, then tap them.</div></div><div class="step">'+wwBtns('wwSetVictim')+'</div>';}
+  else if(wwStep==='doctor'){title.textContent='Night '+wwNight;box.innerHTML='<div class="nightbox"><div class="big2">🩺 Doctor, awaken</div><div class="nn">Choose one player to protect tonight.</div></div><div class="step">'+wwBtns('wwSetSave')+'</div>';}
+  else if(wwStep==='seer'){title.textContent='Night '+wwNight;box.innerHTML='<div class="nightbox"><div class="big2">🔮 Seer, awaken</div><div class="nn">Tap a player to learn their true nature.</div></div><div class="step">'+wwBtns('wwSeer')+'</div>';}
+  else if(wwStep==='seerresult'){const p=wwGame[wwSeerIdx];title.textContent='Night '+wwNight;box.innerHTML='<div class="nightbox"><div class="nn">Only the Seer should look 🤫</div><div class="big2" style="margin-top:8px">'+esc(p.name)+' is</div><div style="font-size:26px;font-weight:900;color:'+(p.role==='Werewolf'?'#ff6b6b':'#3ad6a6')+';margin-top:6px">'+(p.role==='Werewolf'?'a Werewolf 🐺':'NOT a werewolf ✅')+'</div></div><button class="btn" onclick="wwResolveDawn()">Seer sleeps · continue ▶</button>';}
+  else if(wwStep==='dawn'){title.textContent='Day '+wwNight;let msg=wwDead?'<div class="big2">☀️ Dawn breaks</div><div class="nn">'+esc(wwDead.name)+' was attacked in the night… and did not survive.</div><div style="margin-top:8px;font-weight:800">They were a '+wwDead.role+' '+ROLE[wwDead.role].e+'</div>':'<div class="big2">☀️ Dawn breaks</div><div class="nn">Everyone survived the night!</div>';
+    box.innerHTML='<div class="nightbox">'+msg+'</div>'+(wwDead&&drinking?'<div class="sip">🍻 '+esc(wwDead.name)+' is out — take a drink!</div>':'')+wwBoard()+'<button class="btn" style="margin-top:12px" onclick="wwStep=\'vote\';wwRender()">🗳️ Hold the village vote</button>';}
+  else if(wwStep==='vote'){title.textContent='Day '+wwNight;box.innerHTML='<div class="nightbox"><div class="big2">🗳️ Village vote</div><div class="nn">Discuss, then tap the player voted out.</div></div><div class="step">'+wwBtns('wwVote')+'</div>';}
+  else if(wwStep==='voteresult'){title.textContent='Day '+wwNight;box.innerHTML='<div class="nightbox"><div class="big2">'+esc(wwLynch.name)+' was voted out</div><div style="margin-top:8px;font-weight:800">They were a '+wwLynch.role+' '+ROLE[wwLynch.role].e+'</div></div>'+(drinking?'<div class="sip">🍻 '+esc(wwLynch.name)+' drinks!</div>':'')+wwBoard()+'<button class="btn" style="margin-top:12px" onclick="wwNextNight()">🌙 Begin Night '+(wwNight+1)+'</button>';}}
+function wwSetVictim(i){wwVictim=i;if(wwRoleAlive('Doctor')){wwStep='doctor';wwRender();}else if(wwRoleAlive('Seer')){wwStep='seer';wwRender();}else wwResolveDawn();}
+function wwSetSave(i){wwSaved=i;if(wwRoleAlive('Seer')){wwStep='seer';wwRender();}else wwResolveDawn();}
+function wwSeer(i){wwSeerIdx=i;sfx('reveal');wwStep='seerresult';wwRender();}
+function wwResolveDawn(){wwDead=null;if(wwVictim>=0&&wwVictim!==wwSaved){const p=wwGame[wwVictim];if(p&&p.alive){p.alive=false;wwDead={name:p.name,role:p.role};}}
+  const w=wwCheckWin();if(w){wwEnd(w);return;}if(wwDead)sfx('bad');else{sfx('good');burst(innerWidth/2,innerHeight*0.3,50);}wwStep='dawn';wwRender();}
+function wwVote(i){const p=wwGame[i];p.alive=false;wwLynch={name:p.name,role:p.role};sfx('bad');burst(innerWidth/2,innerHeight*0.3,40);const w=wwCheckWin();if(w){wwEnd(w);return;}wwStep='voteresult';wwRender();}
+function wwNextNight(){wwNight++;wwVictim=-1;wwSaved=-1;wwDead=null;wwStep='intro';wwRender();}
+function wwCheckWin(){const alive=wwGame.filter(p=>p.alive),wolves=alive.filter(p=>p.role==='Werewolf').length,others=alive.length-wolves;if(wolves===0)return 'village';if(wolves>=others)return 'wolves';return null;}
+function wwEnd(w){const box=document.getElementById('ww_resbox');const head=w==='village'?'<div class="winner">🎉 Village wins!</div><p class="sub center">Every werewolf has been driven out.</p>':'<div class="winner">🐺 Werewolves win!</div><p class="sub center">The pack now outnumbers the village.</p>';
+  box.innerHTML='<div class="center" style="font-size:58px;margin-top:10px">'+(w==='village'?'🎉':'🐺')+'</div>'+head+'<p class="sub center" style="margin-top:14px">Full role reveal</p><div class="board">'+wwGame.map(p=>'<div class="rerow'+(p.alive?'':' dead')+'"><span>'+esc(p.name)+'</span><span class="dr">'+ROLE[p.role].e+' '+p.role+(p.alive?'':' · out')+'</span></div>').join('')+'</div>';
+  go('ww_res');sfx('crown');burst(innerWidth/2,innerHeight*0.3,140);}
+
+/* ===== SPYFALL ===== */
+let spyP=[],spyLoc=null,spyIdx=-1,spyRoles=[],spyDealIdx=0,spyTimer=null,spyLeft=360;
+function spyAdd(){const inp=document.getElementById('spy_name');const n=inp.value.trim();if(!n||spyP.length>=14||spyP.some(p=>p.toLowerCase()===n.toLowerCase())){inp.value='';return;}spyP.push(n);inp.value='';inp.focus();sfx('tap');spyRender();}
+function spyRemove(i){spyP.splice(i,1);spyRender();}
+function spyRender(){const w=document.getElementById('spy_players');w.innerHTML='';spyP.forEach((p,i)=>{const d=document.createElement('div');d.className='ptag';d.innerHTML='<span>'+esc(p)+'</span><span class="rm" onclick="spyRemove('+i+')">✕</span>';w.appendChild(d);});document.getElementById('spy_startbtn').disabled=spyP.length<3;}
+function spyDeal(){if(spyP.length<3){go('spy_setup');return;}spyLoc=SPY_LOC[Math.floor(Math.random()*SPY_LOC.length)];spyIdx=Math.floor(Math.random()*spyP.length);spyRoles=shuffle(spyLoc.roles);spyDealIdx=0;go('spy_deal');spyRenderDeal();}
+function spyRenderDeal(){const box=document.getElementById('spy_dealbox');if(spyDealIdx>=spyP.length){box.innerHTML='<div class="nightbox"><div class="big2">Everyone\'s got a card 🤫</div><div class="nn">Time to start questioning. 6 minutes on the clock.</div></div><button class="btn" onclick="spyBegin()">▶ Start questioning</button>';return;}
+  const name=spyP[spyDealIdx];box.innerHTML='<div class="card center"><p class="sub" style="margin:0 0 6px">Player '+(spyDealIdx+1)+' of '+spyP.length+'</p><div style="font-size:26px;font-weight:900;margin-bottom:4px">Pass the phone to</div><div style="font-size:30px;font-weight:900;color:var(--p3)">'+esc(name)+'</div></div><button class="btn" onclick="spyShow()">👀 I\'m '+esc(name)+' — reveal my card</button>';}
+function spyShow(){sfx('reveal');const isSpy=spyDealIdx===spyIdx;let html;
+  if(isSpy)html='<div class="rolecard spycard"><div class="re">🕵️</div><div class="rn">YOU ARE THE SPY</div><div class="rg">You don\'t know the location. Blend in, ask clever questions, and figure out where everyone is — without getting caught.</div></div>';
+  else{const role=spyRoles[spyDealIdx%spyRoles.length];html='<div class="rolecard"><div class="re">'+spyLoc.n.split(' ')[0]+'</div><div class="rn">'+spyLoc.n.replace(/^\S+\s/,'')+'</div><div class="rg">Your role: <b style="color:#fff">'+role+'</b><br>Find the spy — but don\'t make the location too obvious!</div></div>';}
+  document.getElementById('spy_dealbox').innerHTML=html+'<button class="btn ghost" onclick="spyHide()">🙈 Hide & pass ▶</button>';}
+function spyHide(){spyDealIdx++;spyRenderDeal();}
+function spyBegin(){spyLeft=360;document.getElementById('spy_sip').innerHTML=sipHtml("If the spy is caught, the spy drinks. If the spy escapes or guesses the location, everyone else drinks.");go('spy_play');spyTime();spyTimer=setInterval(()=>{spyLeft--;spyTime();if(spyLeft<=0){clearInterval(spyTimer);spyReveal();}},1000);}
+function spyTime(){const m=Math.floor(spyLeft/60),s=spyLeft%60;document.getElementById('spy_timer').textContent=m+':'+(s<10?'0':'')+s;if(spyLeft<=10&&spyLeft>0)sfx('tap');}
+function spyReveal(){if(spyTimer)clearInterval(spyTimer);sfx('crown');burst(innerWidth/2,innerHeight*0.3,120);
+  document.getElementById('spy_resbox').innerHTML='<div class="center" style="font-size:58px;margin-top:10px">🕵️</div><div class="winner">'+esc(spyP[spyIdx])+'</div><p class="sub center">was the spy</p><div class="nightbox" style="margin-top:14px"><div class="nn">The secret location was</div><div class="big2" style="margin-top:6px">'+spyLoc.n+'</div></div>'+sipHtml("Caught the spy? The spy drinks. Fooled? Everyone else drinks.");
+  go('spy_res');}
+
+/* ===== WOULD YOU RATHER ===== */
+const WYR_BASE=[
+ {a:"Have the ability to fly",b:"Be invisible"},{a:"Never use social media again",b:"Never watch movies again"},
+ {a:"Fight 100 duck-sized horses",b:"One horse-sized duck"},{a:"Always be 10 minutes late",b:"Always be 20 minutes early"},
+ {a:"Have unlimited money",b:"Have unlimited time"},{a:"Only eat jollof rice for a year",b:"Never eat rice again"},
+ {a:"Be famous but broke",b:"Rich but totally unknown"},{a:"Read minds",b:"See the future"},
+ {a:"Live without music",b:"Live without your phone"},{a:"Never be stuck in traffic again",b:"Never have your data fail again"},
+ {a:"Have a rewind button for life",b:"A pause button for life"},{a:"Speak every language",b:"Play every instrument"},
+ {a:"Always know when people lie",b:"Always get away with lying"},{a:"Be the funniest in the room",b:"The smartest in the room"},
+ {a:"Give up bathing for a month",b:"Give up your phone for a month"},{a:"Free flights for life",b:"Free food for life"},
+ {a:"Teleport anywhere instantly",b:"Time travel"},{a:"Be a famous singer",b:"A famous footballer"}];
+const WYR_ADULT=[];
+let wyrDeck=[],wyrI=0;
+function openWyr(){const pool=WYR_BASE.concat((isAdult&&premium&&premiumLoaded)?WYR_ADULT:[]);wyrDeck=shuffle(pool);wyrI=0;document.getElementById('wyr_sip').innerHTML=sipHtml("Whoever picks the less popular option takes a sip!");wyrShow();go('wyr_play');}
+function wyrShow(){const d=wyrDeck[wyrI%wyrDeck.length];const A=document.getElementById('wyr_a'),B=document.getElementById('wyr_b');A.textContent=d.a;B.textContent=d.b;A.style.opacity=1;B.style.opacity=1;}
+function wyrPick(s){sfx('good');burst(innerWidth*(s==='a'?0.3:0.7),innerHeight*0.4,40);document.getElementById('wyr_'+(s==='a'?'b':'a')).style.opacity=0.35;}
+function wyrNext(){wyrI++;if(wyrI%wyrDeck.length===0)wyrDeck=shuffle(wyrDeck);wyrShow();sfx('tap');}
+
+/* ===== TWO TRUTHS & A LIE ===== */
+let ttlP=[],ttlIdx=0,ttlEntries=[],ttlCur={s:['','',''],lie:0},ttlPhase='pass',ttlGuessIdx=0;
+function ttlAdd(){const inp=document.getElementById('ttl_name');const n=inp.value.trim();if(!n||ttlP.length>=12||ttlP.some(p=>p.toLowerCase()===n.toLowerCase())){inp.value='';return;}ttlP.push(n);inp.value='';inp.focus();sfx('tap');ttlRenderP();}
+function ttlRemoveP(i){ttlP.splice(i,1);ttlRenderP();}
+function ttlRenderP(){const w=document.getElementById('ttl_players');w.innerHTML='';ttlP.forEach((p,i)=>{const d=document.createElement('div');d.className='ptag';d.innerHTML='<span>'+esc(p)+'</span><span class="rm" onclick="ttlRemoveP('+i+')">✕</span>';w.appendChild(d);});document.getElementById('ttl_startbtn').disabled=ttlP.length<2;}
+function ttlStart(){if(ttlP.length<2){go('ttl_setup');return;}ttlIdx=0;ttlEntries=[];ttlBeginPlayer();}
+function ttlBeginPlayer(){ttlCur={s:['','',''],lie:0};ttlPhase='pass';go('ttl_enter');ttlRenderEnter();}
+function ttlRenderEnter(){const box=document.getElementById('ttl_enterbox');
+  if(ttlPhase==='pass'){box.innerHTML='<div class="card center"><p class="sub" style="margin:0 0 6px">Player '+(ttlIdx+1)+' of '+ttlP.length+'</p><div style="font-size:26px;font-weight:900">Pass to</div><div style="font-size:30px;font-weight:900;color:var(--p3)">'+esc(ttlP[ttlIdx])+'</div><p class="sub" style="margin-top:10px">Others, look away! 🙈</p></div><button class="btn" onclick="ttlPhase=\'form\';ttlRenderEnter()">👀 I\'m '+esc(ttlP[ttlIdx])+' — write mine</button>';return;}
+  box.innerHTML='<h1 class="big">Your 3 statements</h1><p class="sub">Two true, one lie. Tap the one that\'s your LIE.</p>'+
+   [0,1,2].map(i=>'<input class="inp" style="margin-bottom:8px" id="ttl_s'+i+'" placeholder="Statement '+(i+1)+'" maxlength="80" value="'+esc(ttlCur.s[i])+'" oninput="ttlCur.s['+i+']=this.value">').join('')+
+   '<p class="sub" style="margin:10px 0 4px">Which one is the lie?</p><div class="chips" id="ttl_liepick">'+[0,1,2].map(i=>'<button class="chip'+(ttlCur.lie===i?' on':'')+'" onclick="ttlSetLie('+i+')">Statement '+(i+1)+'</button>').join('')+'</div>'+
+   '<button class="btn" onclick="ttlDoneEntry()">Done — hide ▶</button>';}
+function ttlSetLie(i){ttlCur.lie=i;document.querySelectorAll('#ttl_liepick .chip').forEach((c,j)=>c.classList.toggle('on',j===i));}
+function ttlDoneEntry(){ttlCur.s=[0,1,2].map(i=>document.getElementById('ttl_s'+i).value.trim());if(ttlCur.s.some(x=>!x))return;
+  ttlEntries.push({name:ttlP[ttlIdx],s:ttlCur.s.slice(),lie:ttlCur.lie});sfx('tap');ttlIdx++;
+  if(ttlIdx>=ttlP.length){ttlGuessIdx=0;go('ttl_guess');ttlRenderGuess();}else ttlBeginPlayer();}
+function ttlRenderGuess(){const e=ttlEntries[ttlGuessIdx];document.getElementById('ttl_guesstitle').textContent=e.name+"'s round";
+  document.getElementById('ttl_guessbox').innerHTML='<p class="sub center">Which is '+esc(e.name)+'\'s lie? Discuss, then reveal.</p>'+
+   e.s.map((t,i)=>'<div class="card" style="font-size:17px;font-weight:700">'+(i+1)+'. '+esc(t)+'</div>').join('')+
+   '<button class="btn" onclick="ttlReveal()">Reveal the lie 🔍</button>';}
+function ttlReveal(){const e=ttlEntries[ttlGuessIdx];sfx('reveal');burst(innerWidth/2,innerHeight*0.3,50);
+  const cards=e.s.map((t,i)=>'<div class="card" style="font-size:17px;font-weight:700;border:2px solid '+(i===e.lie?'#ff5d5d':'#3ad6a6')+'">'+(i+1)+'. '+esc(t)+' <span style="float:right;color:'+(i===e.lie?'#ff5d5d':'#3ad6a6')+'">'+(i===e.lie?'LIE':'TRUE')+'</span></div>').join('');
+  const next=ttlGuessIdx<ttlEntries.length-1?'<button class="btn" onclick="ttlNextGuess()">Next player ▶</button>':'<button class="btn" onclick="go(\'home\')">Finish 🎉</button>';
+  document.getElementById('ttl_guessbox').innerHTML='<p class="sub center">'+esc(e.name)+'\'s reveal:</p>'+cards+next;}
+function ttlNextGuess(){ttlGuessIdx++;ttlRenderGuess();}
+
+/* ===== TRIVIA ===== */
+const OKE_TRIVIA=[
+  {q:"What is Okechukwu's official role?",o:["Group Head, SME Banking","Head of IT","Branch Manager","Chief of Staff"],a:0},
+  {q:"Which of these is one of Oke's classic catchphrases?",o:["Dimension it","Circle back","Ping me","Touch base"],a:0},
+  {q:"Complete Oke's line: 'We will move you to the ___'",o:["branch","bench","basement","backseat"],a:0},
+  {q:"How does Oke feel about giving presentations?",o:["Loves the spotlight","Gets agitated but always executes","Refuses every time","Reads it word-for-word"],a:1},
+  {q:"Oke is best described as a...",o:["Micromanager","Team leader who empowers his people","Lone wolf","Clock-watcher"],a:1},
+  {q:"Where does Oke go to stay in shape?",o:["The gym","The pool","The dance floor","Nowhere"],a:0},
+  {q:"When things move too slowly, Oke gets...",o:["Impatient","Sleepy","Cheerful","Very quiet"],a:0},
+  {q:"Finish the phrase Oke loves: 'Blended ___'",o:["view","coffee","family","learning"],a:0},
+  {q:"Besides working hard, Oke also...",o:["plays a lot","never smiles","avoids everyone","hates music"],a:0},
+  {q:"Oke's secret trait — he's a bit of an...",o:["overthinker","early sleeper","introvert","minimalist"],a:0},
+  {q:"When Oke wants you at his desk, he says...",o:["'Come here'","'Hop on a call'","'Send an email'","'Maybe later'"],a:0},
+  {q:"Which word is peak Oke?",o:["Ihián","Synergy","Bandwidth","Runway"],a:0},
+  {q:"When he's truly done with the excuses, Oke might bluntly say...",o:["'Fuck you!!!' (with love 😅)","'No worries at all'","'Take your time'","'Great work'"],a:0}
+];
+const TRIVIA={
+ "🗺️ Countries":[
+  {q:"What is the capital of Canada?",o:["Toronto","Ottawa","Vancouver","Montreal"],a:1},
+  {q:"Which country has the largest land area?",o:["Russia","Canada","China","USA"],a:0},
+  {q:"The Eiffel Tower is in which country?",o:["Italy","France","Spain","Belgium"],a:1},
+  {q:"What is the capital of Kenya?",o:["Mombasa","Nairobi","Kampala","Kisumu"],a:1},
+  {q:"Which country is called the Land of the Rising Sun?",o:["China","Thailand","Japan","Korea"],a:2},
+  {q:"The pyramids of Giza are in which country?",o:["Egypt","Sudan","Mexico","Iraq"],a:0},
+  {q:"What is the smallest country in the world?",o:["Monaco","Vatican City","Malta","Nauru"],a:1},
+  {q:"Which African country was never colonised?",o:["Ghana","Kenya","Ethiopia","Senegal"],a:2},
+  {q:"What is the capital of Ghana?",o:["Accra","Kumasi","Lagos","Abidjan"],a:0},
+  {q:"The Great Wall is found in which country?",o:["Japan","China","Mongolia","India"],a:1},
+  {q:"What currency is used in Japan?",o:["Won","Yuan","Yen","Ringgit"],a:2},
+  {q:"Which country has the most natural lakes?",o:["Canada","Brazil","Russia","USA"],a:0}
+ ],
+ "🏦 Nigerian Banks":[
+  {q:"What does 'CBN' stand for?",o:["Central Bank of Nigeria","Commercial Bank of Nigeria","Continental Bank Network","Credit Bureau of Nigeria"],a:0},
+  {q:"Which is Nigeria's oldest bank (founded 1894)?",o:["UBA","First Bank","GTBank","Access Bank"],a:1},
+  {q:"What does 'UBA' stand for?",o:["Union Bank of Africa","United Bank for Africa","Universal Bank of Africa","United Banks Alliance"],a:1},
+  {q:"In what year was Fidelity Bank founded?",o:["1979","1988","1995","2001"],a:1},
+  {q:"Access Bank merged with which bank in 2019?",o:["Diamond Bank","Zenith Bank","Union Bank","Wema Bank"],a:0},
+  {q:"What does 'GTB' stand for?",o:["Global Trust Bank","Guaranty Trust Bank","Greenwich Trust Bank","General Trade Bank"],a:1},
+  {q:"What does 'BVN' stand for?",o:["Bank Verification Number","Bank Validation Node","Basic Verified Number","Branch Vault Number"],a:0},
+  {q:"What does 'SME' stand for?",o:["Small and Medium Enterprises","Standard Money Exchange","Secure Mobile Entry","Savings & Micro Estate"],a:0},
+  {q:"GTBank's holding company is called...?",o:["GTCO","GTHoldings","GTGroup","GT Africa"],a:0},
+  {q:"What does 'FCMB' stand for?",o:["First City Monument Bank","Federal Commercial Money Bank","First Continental Merchant Bank","Fidelity Corporate Merchant Bank"],a:0},
+  {q:"Which body insures bank deposits in Nigeria?",o:["EFCC","NDIC","SEC","NGX"],a:1},
+  {q:"Fidelity Bank's brand colour is predominantly...?",o:["Red","Blue","Green","Purple"],a:2}
+ ],
+ "📖 Nigeria History":[
+  {q:"When did Nigeria gain independence?",o:["1957","1960","1963","1966"],a:1},
+  {q:"From which country did Nigeria gain independence?",o:["France","Britain","Portugal","Belgium"],a:1},
+  {q:"In what year did Nigeria become a republic?",o:["1960","1963","1970","1979"],a:1},
+  {q:"Who was Nigeria's first President?",o:["Nnamdi Azikiwe","Tafawa Balewa","Obafemi Awolowo","Yakubu Gowon"],a:0},
+  {q:"The Nigerian Civil War (Biafra) took place between...",o:["1960–1963","1967–1970","1975–1979","1983–1985"],a:1},
+  {q:"Nigeria's capital moved from Lagos to Abuja in...",o:["1976","1991","1999","2001"],a:1},
+  {q:"Who amalgamated Northern & Southern Nigeria in 1914?",o:["Lord Lugard","Herbert Macaulay","Queen Victoria","Nnamdi Azikiwe"],a:0},
+  {q:"How many states does Nigeria have?",o:["30","36","24","40"],a:1}
+ ],
+ "🏛️ Nigerian Politics":[
+  {q:"Who is the current President of Nigeria (2026)?",o:["Muhammadu Buhari","Bola Tinubu","Goodluck Jonathan","Atiku Abubakar"],a:1},
+  {q:"What is the ruling party under Tinubu?",o:["PDP","APC","Labour Party","APGA"],a:1},
+  {q:"Nigeria's legislature is called the...?",o:["Parliament","National Assembly","Congress","Senate House"],a:1},
+  {q:"How many senators are in Nigeria's Senate?",o:["100","109","120","36"],a:1},
+  {q:"How many geopolitical zones does Nigeria have?",o:["4","5","6","8"],a:2},
+  {q:"Which body conducts elections in Nigeria?",o:["INEC","EFCC","CBN","NNPC"],a:0},
+  {q:"Democracy Day in Nigeria is now celebrated on...?",o:["October 1","May 29","June 12","January 15"],a:2},
+  {q:"Nigeria's capital city is...?",o:["Lagos","Abuja","Kano","Ibadan"],a:1}
+ ],
+ "💰 Nigerian Economy":[
+  {q:"What is Nigeria's currency?",o:["Cedi","Naira","Shilling","Rand"],a:1},
+  {q:"Nigeria's biggest export is...?",o:["Cocoa","Crude oil","Gold","Cotton"],a:1},
+  {q:"Nigeria's national minimum wage (2026) is...?",o:["₦30,000","₦50,000","₦70,000","₦100,000"],a:2},
+  {q:"Who is often called Africa's richest man (Nigerian)?",o:["Aliko Dangote","Mike Adenuga","Tony Elumelu","Femi Otedola"],a:0},
+  {q:"Dangote's landmark 2023 project was a...?",o:["Airline","Oil refinery","Bank","Telecom"],a:1},
+  {q:"The Nigerian Stock Exchange is now known as...?",o:["NGX","NSE","NXG","NGSE"],a:0},
+  {q:"Nigeria is a member of which oil organisation?",o:["OPEC","NATO","G7","ASEAN"],a:0},
+  {q:"Nigeria's commercial capital is...?",o:["Abuja","Lagos","Port Harcourt","Kano"],a:1}
+ ],
+ "🎶 Naija Music":[
+  {q:"Who is regarded as the pioneer of Afrobeat?",o:["Fela Kuti","2Baba","Burna Boy","King Sunny Adé"],a:0},
+  {q:"Which Nigerian won a Grammy for 'Twice as Tall'?",o:["Wizkid","Davido","Burna Boy","Rema"],a:2},
+  {q:"Davido's real name is...?",o:["David Adeleke","David Adedeji","Daniel Ade","David Okafor"],a:0},
+  {q:"'Essence' is a hit by Wizkid featuring...?",o:["Tems","Ayra Starr","Tiwa Savage","Simi"],a:0},
+  {q:"Don Jazzy founded which record label?",o:["YBNL","Mavin Records","DMW","Chocolate City"],a:1},
+  {q:"P-Square are which twin brothers?",o:["Peter & Paul Okoye","Femi & Seun","Bright & Bishop","Kcee & E-Money"],a:0},
+  {q:"Which star is nicknamed 'Odogwu'?",o:["Davido","Burna Boy","Olamide","Phyno"],a:1},
+  {q:"Asake is signed to which label?",o:["YBNL","Mavin","DMW","Starboy"],a:0}
+ ],
+ "🎧 International Music":[
+  {q:"Who is known as the 'King of Pop'?",o:["Elvis Presley","Michael Jackson","Prince","Drake"],a:1},
+  {q:"Which band recorded 'Bohemian Rhapsody'?",o:["The Beatles","Queen","Led Zeppelin","Pink Floyd"],a:1},
+  {q:"Rihanna is from which country?",o:["Jamaica","USA","Barbados","Trinidad"],a:2},
+  {q:"Beyoncé rose to fame with which group?",o:["TLC","Destiny's Child","Spice Girls","En Vogue"],a:1},
+  {q:"'Shape of You' is a song by...?",o:["Ed Sheeran","Sam Smith","Justin Bieber","Shawn Mendes"],a:0},
+  {q:"Eminem's real name is...?",o:["Marshall Mathers","Curtis Jackson","Calvin Broadus","Aubrey Graham"],a:0},
+  {q:"The Beatles came from which English city?",o:["London","Manchester","Liverpool","Leeds"],a:2},
+  {q:"Which artist re-records albums as '(Taylor's Version)'?",o:["Adele","Taylor Swift","Katy Perry","Dua Lipa"],a:1}
+ ],
+ "📜 World History":[
+  {q:"Who was the first person to walk on the moon?",o:["Buzz Aldrin","Neil Armstrong","Yuri Gagarin","Michael Collins"],a:1},
+  {q:"In what year did World War II end?",o:["1918","1939","1945","1950"],a:2},
+  {q:"Who painted the Mona Lisa?",o:["Michelangelo","Leonardo da Vinci","Picasso","Van Gogh"],a:1},
+  {q:"Who was the first President of the United States?",o:["Abraham Lincoln","George Washington","Thomas Jefferson","John Adams"],a:1},
+  {q:"The Titanic sank in which year?",o:["1905","1912","1920","1898"],a:1},
+  {q:"Which country gifted the Statue of Liberty to the USA?",o:["Britain","France","Spain","Italy"],a:1},
+  {q:"Nelson Mandela became president of which country?",o:["Kenya","Nigeria","South Africa","Ghana"],a:2},
+  {q:"The Berlin Wall fell in which year?",o:["1979","1985","1989","1991"],a:2}
+ ],
+ "🌍 General":[
+  {q:"How many continents are there?",o:["5","6","7","8"],a:2},
+  {q:"What is the largest planet in our solar system?",o:["Earth","Jupiter","Saturn","Mars"],a:1},
+  {q:"How many colours are in a rainbow?",o:["5","6","7","8"],a:2},
+  {q:"What is the capital of Japan?",o:["Seoul","Beijing","Tokyo","Bangkok"],a:2},
+  {q:"How many sides does a hexagon have?",o:["5","6","7","8"],a:1},
+  {q:"What is the largest ocean on Earth?",o:["Atlantic","Indian","Arctic","Pacific"],a:3},
+  {q:"How many minutes are in a full day?",o:["1200","1440","1600","2400"],a:1},
+  {q:"Which language has the most native speakers?",o:["English","Spanish","Mandarin Chinese","Hindi"],a:2},
+  {q:"How many strings does a standard guitar have?",o:["4","5","6","7"],a:2},
+  {q:"What is the smallest prime number?",o:["0","1","2","3"],a:2}],
+ "🇳🇬 Naija":[
+  {q:"What is the capital of Nigeria?",o:["Lagos","Abuja","Kano","Ibadan"],a:1},
+  {q:"What is Nigeria's currency?",o:["Cedi","Naira","Shilling","Rand"],a:1},
+  {q:"The Niger meets which river at Lokoja?",o:["Benue","Congo","Nile","Volta"],a:0},
+  {q:"Which city is nicknamed the 'Centre of Excellence'?",o:["Abuja","Lagos","Port Harcourt","Kano"],a:1},
+  {q:"What colours are the bands on Nigeria's flag?",o:["Green & White","Red & White","Green & Yellow","Blue & White"],a:0},
+  {q:"Which Afrobeats star is nicknamed 'Odogwu'?",o:["Davido","Burna Boy","Wizkid","Olamide"],a:1},
+  {q:"Jollof rice is most associated with which region?",o:["West Africa","East Africa","North Africa","Southern Africa"],a:0},
+  {q:"Nigeria gained independence in which year?",o:["1957","1960","1963","1970"],a:1}],
+ "⚽ Sports":[],"🎬 Entertainment":[],"🔬 Science":[]};
+let trvCat=null,trvDeck=[],trvI=0,trvScore=0,trvLocked=false;
+function okeStart(){var pool=shuffle(OKE_TRIVIA);trvDeck=pool.slice(0,Math.min(13,pool.length));trvI=0;trvScore=0;document.getElementById('trv_total').textContent=trvDeck.length;document.getElementById('trv_score').textContent='0';go('trv_play');trvShow();}
+function openTrivia(){const wrap=document.getElementById('trv_cats');wrap.innerHTML='';
+  Object.keys(TRIVIA).forEach((c,i)=>{const b=document.createElement('button');const lk=isLocked(c);b.className='chip'+(i===0?' on':'')+(lk?' lock':'');b.textContent=(lk?'🔒 ':'')+c;b.onclick=lk?()=>{sfx('tap');openPrem();}:()=>{sfx('tap');document.querySelectorAll('#trv_cats .chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');trvCat=c;};wrap.appendChild(b);});
+  trvCat=Object.keys(TRIVIA)[0];go('trv_setup');}
+function trvStart(){const pool=shuffle(TRIVIA[trvCat]);trvDeck=pool.slice(0,Math.min(10,pool.length));trvI=0;trvScore=0;document.getElementById('trv_total').textContent=trvDeck.length;document.getElementById('trv_score').textContent='0';go('trv_play');trvShow();}
+function trvShow(){trvLocked=false;const q=trvDeck[trvI];document.getElementById('trv_qn').textContent=trvI+1;document.getElementById('trv_q').textContent=q.q;
+  const opts=document.getElementById('trv_opts');opts.innerHTML='';
+  q.o.forEach((o,i)=>{const b=document.createElement('button');b.className='crownbtn';b.style.textAlign='left';b.style.width='100%';b.textContent=o;b.onclick=()=>trvAnswer(i);opts.appendChild(b);});}
+function trvAnswer(i){if(trvLocked)return;trvLocked=true;const q=trvDeck[trvI];const btns=document.querySelectorAll('#trv_opts .crownbtn');
+  btns.forEach((b,j)=>{if(j===q.a)b.style.background='linear-gradient(135deg,#23d18b,#00e0c6)';else if(j===i)b.style.background='linear-gradient(135deg,#ff5d5d,#ff8a3d)';});
+  if(i===q.a){trvScore++;document.getElementById('trv_score').textContent=trvScore;sfx('good');burst(innerWidth/2,innerHeight*0.4,30);}else sfx('bad');
+  setTimeout(()=>{trvI++;if(trvI>=trvDeck.length)trvEnd();else trvShow();},1100);}
+function trvEnd(){const total=trvDeck.length,pct=trvScore/total;document.getElementById('trv_final').textContent=trvScore+'/'+total;
+  document.getElementById('trv_emoji').textContent=pct>=0.8?'🏆':pct>=0.5?'🎉':'😅';
+  document.getElementById('trv_msg').textContent=pct>=0.8?'Genius! Trivia royalty.':pct>=0.5?'Nice one — solid score!':'Room for a rematch 😄';
+  go('trv_res');sfx('crown');if(pct>=0.5)burst(innerWidth/2,innerHeight*0.3,120);}
+
+/* ===== TABOO ===== */
+const TABOO={
+ "🎬 Movies & TV":[
+  {word:"Titanic",taboo:["Ship","Iceberg","Jack","Rose","Sink"]},
+  {word:"Spider-Man",taboo:["Spider","Web","Peter","Hero","Marvel"]},
+  {word:"Game of Thrones",taboo:["Dragon","Throne","Winter","King","HBO"]},
+  {word:"Big Brother Naija",taboo:["House","Housemate","Eviction","Reality","TV"]},
+  {word:"Frozen",taboo:["Elsa","Snow","Let It Go","Ice","Disney"]},
+  {word:"Squid Game",taboo:["Korean","Money","Red Light","Netflix","Game"]},
+  {word:"Harry Potter",taboo:["Wizard","Magic","Hogwarts","Wand","Scar"]},
+  {word:"The Lion King",taboo:["Simba","Lion","Pride","Mufasa","Disney"]}],
+ "🍔 Everyday Things":[
+  {word:"Coffee",taboo:["Drink","Caffeine","Morning","Cup","Hot"]},
+  {word:"Phone",taboo:["Call","Mobile","Text","Screen","Apple"]},
+  {word:"Jollof",taboo:["Rice","Tomato","Party","Ghana","Cook"]},
+  {word:"Glasses",taboo:["Eyes","See","Wear","Lens","Vision"]},
+  {word:"Umbrella",taboo:["Rain","Wet","Cover","Open","Sun"]},
+  {word:"Toothbrush",taboo:["Teeth","Clean","Mouth","Paste","Brush"]},
+  {word:"Football",taboo:["Soccer","Goal","Ball","Kick","Messi"]},
+  {word:"Pillow",taboo:["Sleep","Soft","Head","Bed","Rest"]}],
+ "🌟 Famous People":[],"🐘 Animals & Nature":[]};
+let tabCat=null,tabDeck=[],tabI=0,tabScore=0,tabResults=[],tabTimer=null,tabLeft=60,tabRun=false;
+function openTaboo(){const wrap=document.getElementById('tab_cats');wrap.innerHTML='';
+  Object.keys(TABOO).forEach((c,i)=>{const b=document.createElement('button');const lk=isLocked(c);b.className='chip'+(i===0?' on':'')+(lk?' lock':'');b.textContent=(lk?'🔒 ':'')+c;b.onclick=lk?()=>{sfx('tap');openPrem();}:()=>{sfx('tap');document.querySelectorAll('#tab_cats .chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');tabCat=c;};wrap.appendChild(b);});
+  tabCat=Object.keys(TABOO)[0];go('tab_setup');}
+function tabStart(){tabDeck=shuffle(TABOO[tabCat]);tabI=0;tabScore=0;tabResults=[];tabLeft=60;tabRun=false;go('tab_play');
+  document.getElementById('tab_scoreL').textContent='0';document.getElementById('tab_timer').textContent='60';
+  tabShow();tabRun=true;tabTimer=setInterval(()=>{tabLeft--;document.getElementById('tab_timer').textContent=tabLeft;if(tabLeft<=0)tabEnd();},1000);}
+function tabShow(){if(tabI>=tabDeck.length)tabDeck=tabDeck.concat(shuffle(TABOO[tabCat]));const c=tabDeck[tabI];
+  document.getElementById('tab_word').textContent=c.word;
+  document.getElementById('tab_banned').innerHTML=c.taboo.map(t=>'<div style="background:rgba(255,93,93,.16);color:#ff9a9a;border-radius:10px;padding:7px;font-weight:700">🚫 '+esc(t)+'</div>').join('');}
+function tabMark(got){if(!tabRun)return;tabResults.push({word:tabDeck[tabI].word,got});if(got){tabScore++;document.getElementById('tab_scoreL').textContent=tabScore;sfx('good');burst(innerWidth*0.75,innerHeight*0.8,16);}else sfx('bad');flash(got?'#23d18b':'#ff5d5d');tabI++;tabShow();}
+function tabEnd(){clearInterval(tabTimer);tabRun=false;document.getElementById('tab_final').textContent=tabScore;
+  const list=document.getElementById('tab_reslist');list.innerHTML='';tabResults.forEach(r=>{const d=document.createElement('div');d.className='resitem';d.innerHTML='<span>'+esc(r.word)+'</span><span class="'+(r.got?'v':'x')+'">'+(r.got?'✓':'✗')+'</span>';list.appendChild(d);});if(!tabResults.length)list.innerHTML='<div class="resitem"><span style="color:var(--muted)">No cards played</span><span></span></div>';if(tabScore>0)burst(innerWidth/2,innerHeight*0.3,90);go('tab_res');}
+
+/* ===== ONLINE ROOMS (Firebase Realtime Database) ===== */
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyBpCIEYwYYcaQCoT3EjcOfnhoMKT5fgJEE",
+  authDomain:"hypeactive-ba75d.firebaseapp.com",
+  databaseURL:"https://hypeactive-ba75d-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"hypeactive-ba75d",
+  storageBucket:"hypeactive-ba75d.firebasestorage.app",
+  messagingSenderId:"570520379606",
+  appId:"1:570520379606:web:5164a779a8ef048d686977"
+};
+let DB=null,netOK=false;
+try{if(FIREBASE_CONFIG.databaseURL&&window.firebase){firebase.initializeApp(FIREBASE_CONFIG);DB=firebase.database();netOK=true;}}catch(e){netOK=false;}
+let CLIENT_ID;try{CLIENT_ID=localStorage.getItem('hype_cid');if(!CLIENT_ID){CLIENT_ID='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('hype_cid',CLIENT_ID);}}catch(e){CLIENT_ID='p'+Math.random().toString(36).slice(2,10);}
+let room=null,roomRef=null,isHost=false,myName='',netGame='werewolf',netState=null,netUnsub=[],netTimer=null;
+let pendingRoom='';try{pendingRoom=(new URLSearchParams(location.search).get('room')||'').toUpperCase();}catch(e){}
+function val(id){const el=document.getElementById(id);return el?(el.value||'').trim():'';}
+function netMsg(t){const el=document.getElementById('net_msg');if(el)el.textContent=t;}
+function roomCode(){let s='';const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
+function setNetGame(g){netGame=g;document.querySelectorAll('#net_gamesel .chip').forEach(c=>c.classList.toggle('on',c.dataset.g===g));}
+function openNet(){if(!netOK){go('net_setup');return;}netMsg('');const cc=document.getElementById('net_code');if(cc)cc.value='';setNetGame(netGame);go('net_home');}
+function netCreate(){if(!netOK){go('net_setup');return;}myName=val('net_name');if(!myName){netMsg('Enter your name first.');return;}
+  room=roomCode();isHost=true;roomRef=DB.ref('rooms/'+room);
+  roomRef.set({host:CLIENT_ID,game:netGame,status:'lobby',createdAt:Date.now(),config:{wolves:1,seer:true,doctor:true}}).then(()=>{
+   roomRef.child('players/'+CLIENT_ID).set({name:myName});try{roomRef.child('players/'+CLIENT_ID).onDisconnect().remove();}catch(e){}
+   netWatch();go('net_room');sfx('reveal');
+  }).catch(()=>netMsg('Could not create room — check the Firebase setup.'));}
+function netJoin(){if(!netOK){go('net_setup');return;}myName=val('net_name');const code=val('net_code').toUpperCase();
+  if(!myName){netMsg('Enter your name first.');return;}if(code.length<4){netMsg('Enter the 4-character room code.');return;}
+  const ref=DB.ref('rooms/'+code);ref.once('value').then(s=>{if(!s.exists()){netMsg('Room "'+code+'" not found.');return;}
+   room=code;roomRef=ref;isHost=(s.val().host===CLIENT_ID);netGame=s.val().game||'werewolf';
+   roomRef.child('players/'+CLIENT_ID).set({name:myName});try{roomRef.child('players/'+CLIENT_ID).onDisconnect().remove();}catch(e){}
+   netWatch();go('net_room');sfx('reveal');
+  }).catch(()=>netMsg('Could not join — check your connection.'));}
+function netWatch(){netDetach();const h=roomRef.on('value',s=>{if(!s.exists()){netLeave();return;}netState=s.val();netRender(netState);if(netGame==='spyfall'&&netState.status==='playing')netStartTimer();});netUnsub.push(()=>roomRef.off('value',h));}
+function netDetach(){netUnsub.forEach(f=>{try{f();}catch(e){}});netUnsub=[];}
+function netLeave(){try{if(roomRef)roomRef.child('players/'+CLIENT_ID).remove();}catch(e){}netDetach();if(netTimer){clearInterval(netTimer);netTimer=null;}room=null;roomRef=null;isHost=false;netState=null;go('home');}
+function netRender(r){if(netGame==='trivia'){netRenderTrivia(r);return;}if(netGame==='wyr'){netRenderWyr(r);return;}if(netGame==='mostlikely'){netRenderMl(r);return;}const box=document.getElementById('net_box');if(!box)return;
+  document.getElementById('net_roomtitle').textContent=(netGame==='werewolf'?'🐺 Werewolf':'🕵️ Spyfall')+' · '+room;
+  const players=r.players?Object.entries(r.players):[];const me=r.roles&&r.roles[CLIENT_ID];
+  if(r.status==='lobby'){
+    let h='<div class="nightbox"><div class="nn">Room code</div><div style="font-size:46px;font-weight:900;letter-spacing:6px;color:var(--p3)">'+room+'</div><div class="nn">Share it so friends can join</div></div>';
+    var joinURL=location.origin+location.pathname+'?room='+room;
+    h+='<div class="card center"><p class="sub" style="margin:0 0 8px">📲 Scan to join</p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data='+encodeURIComponent(joinURL)+'" width="170" height="170" style="border-radius:14px;background:#fff" alt="QR code"><p class="sub" style="margin:8px 0 0;font-size:11px;word-break:break-all">'+esc(joinURL)+'</p></div>';
+    h+='<p class="sub">Players ('+players.length+')</p><div class="plist">'+players.map(function(e){var id=e[0],p=e[1];return '<div class="ptag"><span>'+esc(p.name)+(id===r.host?' 👑':'')+(id===CLIENT_ID?' · you':'')+'</span></div>';}).join('')+'</div>';
+    if(isHost){if(netGame==='werewolf'){const c=r.config||{wolves:1,seer:true,doctor:true};h+='<div class="card" style="margin-top:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-weight:800">🐺 Werewolves</span><span style="display:flex;gap:12px;align-items:center"><button class="crownbtn" onclick="netCfgWolf(-1)">−</button><b>'+c.wolves+'</b><button class="crownbtn" onclick="netCfgWolf(1)">+</button></span></div><div class="chips"><button class="chip'+(c.seer?' on':'')+'" onclick="netCfgTog(\'seer\')">🔮 Seer</button><button class="chip'+(c.doctor?' on':'')+'" onclick="netCfgTog(\'doctor\')">🩺 Doctor</button></div></div>';}
+      h+='<button class="btn" '+(players.length<3?'disabled':'')+' onclick="netDeal()">Deal roles & start ▶</button>'+(players.length<3?'<p class="sub center" style="font-size:13px">Need at least 3 players to start.</p>':'');}
+    else h+='<p class="sub center" style="margin-top:16px">Waiting for the host to start… ⏳</p>';
+    box.innerHTML=h;}
+  else if(r.status==='playing'){if(!me){box.innerHTML='<div class="nightbox"><div class="big2">Dealing your role…</div></div>';return;}
+    let h=netRoleCard(me);if(netGame==='spyfall')h+='<div class="bigtimer" id="net_timer">6:00</div><p class="sub center">Ask questions. Find the spy.</p>';h+=netHostPanel(r);box.innerHTML=h;}
+  else if(r.status==='reveal'){box.innerHTML=netRevealHtml(r)+(isHost?'<button class="btn" onclick="netRestart()">Back to lobby ▶</button>':'<p class="sub center" style="margin-top:10px">Waiting for the host…</p>')+'<button class="btn ghost" onclick="netLeave()">Leave room</button>';}}
+function netRoleCard(me){if(netGame==='werewolf'){const m=ROLE[me.role]||{e:'❓',g:''};return '<div class="rolecard"><div class="re">'+m.e+'</div><div class="rn">'+esc(me.role)+'</div><div class="rg">'+m.g+'</div></div>';}
+  if(me.role==='SPY')return '<div class="rolecard spycard"><div class="re">🕵️</div><div class="rn">YOU ARE THE SPY</div><div class="rg">Blend in. Work out the location without getting caught.</div></div>';
+  return '<div class="rolecard"><div class="re">'+esc(me.loc.split(" ")[0])+'</div><div class="rn">'+esc(me.loc.replace(/^\S+\s/,''))+'</div><div class="rg">Your role: <b style="color:#fff">'+esc(me.role)+'</b><br>Find the spy — don\'t be too obvious!</div></div>';}
+function netHostPanel(r){if(!isHost)return '';
+  if(netGame==='spyfall')return '<button class="btn" style="margin-top:14px" onclick="netReveal()">Reveal the spy 🔍</button>';
+  const list=Object.entries(r.players||{}).map(function(e){var id=e[0],p=e[1];var role=r.roles&&r.roles[id]?r.roles[id].role:'?';return '<div class="rerow"><span>'+esc(p.name)+'</span><span class="dr">'+(ROLE[role]?ROLE[role].e+' '+role:role)+'</span></div>';}).join('');
+  return '<div class="card" style="margin-top:14px"><p class="sub" style="margin:0 0 8px">👑 Host view — narrate the night aloud:</p><div class="board">'+list+'</div></div><button class="btn" onclick="netReveal()">Reveal all & end ▶</button>';}
+function netRevealHtml(r){if(netGame==='spyfall'){const sp=r.spy||{};const sn=(r.players&&r.players[sp.spyId]?r.players[sp.spyId].name:'?');return '<div class="center" style="font-size:54px;margin-top:8px">🕵️</div><div class="winner">'+esc(sn)+'</div><p class="sub center">was the spy</p><div class="nightbox" style="margin-top:12px"><div class="nn">The location was</div><div class="big2">'+esc(sp.location||'')+'</div></div>';}
+  const list=Object.entries(r.players||{}).map(function(e){var id=e[0],p=e[1];var role=r.roles&&r.roles[id]?r.roles[id].role:'?';return '<div class="rerow"><span>'+esc(p.name)+'</span><span class="dr">'+(ROLE[role]?ROLE[role].e+' '+role:role)+'</span></div>';}).join('');
+  return '<div class="center" style="font-size:54px;margin-top:8px">🎭</div><div class="winner">Roles revealed</div><div class="board" style="margin-top:10px">'+list+'</div>';}
+function netCfgWolf(d){if(!netState)return;const c=netState.config||{wolves:1,seer:true,doctor:true};const max=Math.max(1,Object.keys(netState.players||{}).length-2);c.wolves=Math.min(max,Math.max(1,(c.wolves||1)+d));roomRef.child('config').set(c);sfx('tap');}
+function netCfgTog(k){if(!netState)return;const c=netState.config||{wolves:1,seer:true,doctor:true};c[k]=!c[k];roomRef.child('config').set(c);sfx('tap');}
+function netDeal(){if(!isHost||!netState)return;const ids=Object.keys(netState.players||{});if(ids.length<3)return;const u={};
+  if(netGame==='werewolf'){const c=netState.config||{wolves:1,seer:true,doctor:true};let roles=[];for(let i=0;i<c.wolves;i++)roles.push('Werewolf');if(c.seer)roles.push('Seer');if(c.doctor)roles.push('Doctor');while(roles.length<ids.length)roles.push('Villager');roles=shuffle(roles).slice(0,ids.length);const m={};ids.forEach((id,i)=>m[id]={role:roles[i]});u.roles=m;u.status='playing';}
+  else{const loc=SPY_LOC[Math.floor(Math.random()*SPY_LOC.length)];const spy=Math.floor(Math.random()*ids.length);const rr=shuffle(loc.roles);const m={};ids.forEach((id,i)=>m[id]=i===spy?{role:'SPY',loc:loc.n}:{role:rr[i%rr.length],loc:loc.n});u.roles=m;u.spy={location:loc.n,spyId:ids[spy]};u.endTime=Date.now()+360000;u.status='playing';}
+  roomRef.update(u);sfx('reveal');burst(innerWidth/2,innerHeight*0.3,80);}
+function netReveal(){if(!isHost)return;roomRef.child('status').set('reveal');sfx('crown');burst(innerWidth/2,innerHeight*0.3,120);}
+function netRestart(){if(!isHost)return;roomRef.update({status:'lobby',roles:null,spy:null,endTime:null});}
+function netStartTimer(){if(netTimer)return;netTimer=setInterval(()=>{const el=document.getElementById('net_timer');if(!el)return;const end=netState&&netState.endTime;if(!end){el.textContent='';return;}const left=Math.max(0,Math.round((end-Date.now())/1000));const m=Math.floor(left/60),s=left%60;el.textContent=m+':'+(s<10?'0':'')+s;},500);}
+
+/* ===== ONLINE LIVE TRIVIA ===== */
+var hostTrivQ=[],hostTrivCat=null;
+function netTrivCatChips(){var wrap=document.getElementById('net_trivcats');if(!wrap)return;wrap.innerHTML='';var keys=Object.keys(TRIVIA);if(!hostTrivCat)hostTrivCat=keys[0];keys.forEach(function(c){var b=document.createElement('button');b.className='chip'+(c===hostTrivCat?' on':'');b.textContent=c;b.onclick=function(){hostTrivCat=c;document.querySelectorAll('#net_trivcats .chip').forEach(function(x){x.classList.remove('on');});b.classList.add('on');};wrap.appendChild(b);});}
+function netTrivStart(){if(!isHost||!netState)return;var cat=hostTrivCat||Object.keys(TRIVIA)[0];var pool=shuffle(TRIVIA[cat]||[]);hostTrivQ=pool.slice(0,Math.min(10,pool.length));if(!hostTrivQ.length)return;roomRef.child('tscores').set(null);roomRef.child('tanswers').set(null);netTrivWriteQ(0,cat);roomRef.child('status').set('playing');sfx('reveal');}
+function netTrivWriteQ(qi,cat){var q=hostTrivQ[qi];roomRef.child('trivia').set({cat:cat,qi:qi,total:hostTrivQ.length,q:q.q,o:q.o,phase:'answer'});}
+function netTrivAnswer(choice){if(!netState||!netState.trivia)return;var t=netState.trivia;if(t.phase!=='answer')return;var a=netState.tanswers&&netState.tanswers[t.qi];if(a&&Object.prototype.hasOwnProperty.call(a,CLIENT_ID))return;roomRef.child('tanswers/'+t.qi+'/'+CLIENT_ID).set(choice);sfx('tap');}
+function netTrivReveal(){if(!isHost||!netState||!netState.trivia)return;var t=netState.trivia;var correct=hostTrivQ[t.qi]?hostTrivQ[t.qi].a:0;var ans=(netState.tanswers&&netState.tanswers[t.qi])||{};var scores=Object.assign({},netState.tscores||{});Object.keys(ans).forEach(function(id){if(ans[id]===correct)scores[id]=(scores[id]||0)+1;});roomRef.child('tscores').set(scores);roomRef.child('trivia/correct').set(correct);roomRef.child('trivia/phase').set('reveal');sfx('good');burst(innerWidth/2,innerHeight*0.35,50);}
+function netTrivNext(){if(!isHost||!netState||!netState.trivia)return;var t=netState.trivia;var ni=t.qi+1;if(ni>=t.total){roomRef.child('status').set('over');sfx('crown');burst(innerWidth/2,innerHeight*0.3,140);}else{netTrivWriteQ(ni,t.cat);}}
+function netTrivRestart(){if(!isHost)return;roomRef.update({status:'lobby',trivia:null,tscores:null,tanswers:null});}
+function netTrivBoard(r){var sc=r.tscores||{},players=r.players||{};var arr=Object.keys(players).map(function(id){return {name:players[id].name,pts:sc[id]||0,me:id===CLIENT_ID};});arr.sort(function(a,b){return b.pts-a.pts;});return '<div class="board">'+arr.map(function(p,i){return '<div class="brow'+(i===0&&p.pts>0?' lead':'')+'"><span>'+(i===0&&p.pts>0?'👑 ':(i+1)+'. ')+esc(p.name)+(p.me?' · you':'')+'</span><span class="pts">'+p.pts+'</span></div>';}).join('')+'</div>';}
+function netRenderTrivia(r){var box=document.getElementById('net_box');if(!box)return;var tt=document.getElementById('net_roomtitle');if(tt)tt.textContent='🧠 Live Trivia · '+room;var players=r.players?Object.entries(r.players):[];
+  if(r.status==='lobby'){var joinURL=location.origin+location.pathname+'?room='+room;
+    var h='<div class="nightbox"><div class="nn">Room code</div><div style="font-size:46px;font-weight:900;letter-spacing:6px;color:var(--p3)">'+room+'</div><div class="nn">Share it so friends can join</div></div>';
+    h+='<div class="card center"><p class="sub" style="margin:0 0 8px">📲 Scan to join</p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data='+encodeURIComponent(joinURL)+'" width="150" height="150" style="border-radius:14px;background:#fff" alt="QR"></div>';
+    h+='<p class="sub">Players ('+players.length+')</p><div class="plist">'+players.map(function(e){return '<div class="ptag"><span>'+esc(e[1].name)+(e[0]===r.host?' 👑':'')+(e[0]===CLIENT_ID?' · you':'')+'</span></div>';}).join('')+'</div>';
+    if(isHost)h+='<p class="sub" style="margin-top:14px">Pick a category:</p><div class="chips" id="net_trivcats"></div><button class="btn" '+(players.length<2?'disabled':'')+' onclick="netTrivStart()">Start quiz ▶</button>'+(players.length<2?'<p class="sub center" style="font-size:13px">Need at least 2 players.</p>':'');
+    else h+='<p class="sub center" style="margin-top:16px">Waiting for the host to start… ⏳</p>';
+    box.innerHTML=h;if(isHost)netTrivCatChips();return;}
+  if(r.status==='over'){box.innerHTML='<div class="center" style="font-size:56px;margin-top:8px">🏆</div><div class="winner">Final scores</div>'+netTrivBoard(r)+(isHost?'<button class="btn" style="margin-top:14px" onclick="netTrivRestart()">Back to lobby ▶</button>':'<p class="sub center" style="margin-top:10px">Thanks for playing! 🎉</p>')+'<button class="btn ghost" onclick="netLeave()">Leave room</button>';return;}
+  var t=r.trivia;if(!t){box.innerHTML='<div class="nightbox"><div class="big2">Loading…</div></div>';return;}
+  var ansObj=(r.tanswers&&r.tanswers[t.qi])||{};var hasMine=Object.prototype.hasOwnProperty.call(ansObj,CLIENT_ID);var myChoice=hasMine?ansObj[CLIENT_ID]:-1;var answered=Object.keys(ansObj).length;
+  var h='<div class="card"><p class="sub center" style="margin:0 0 4px">Question '+(t.qi+1)+' / '+t.total+'</p><div class="prompt" style="font-size:20px">'+esc(t.q)+'</div></div>';
+  h+='<div class="step">'+(t.o||[]).map(function(opt,i){var bg='var(--card2)';if(t.phase==='reveal'){if(i===t.correct)bg='linear-gradient(135deg,#23d18b,#00e0c6)';else if(i===myChoice)bg='linear-gradient(135deg,#ff5d5d,#ff8a3d)';}else if(hasMine&&i===myChoice)bg='rgba(0,224,198,.28)';return '<button class="crownbtn" style="text-align:left;width:100%;background:'+bg+'" onclick="netTrivAnswer('+i+')">'+esc(opt)+'</button>';}).join('')+'</div>';
+  if(t.phase==='answer')h+='<p class="sub center" style="margin-top:10px">'+(hasMine?'Answer locked ✓ — waiting for others…':'Tap your answer')+'</p>';
+  else h+='<p class="sub center" style="margin-top:10px">'+(myChoice===t.correct?'✅ Correct!':(hasMine?'❌ Not this time':'⏱️ No answer'))+'</p>';
+  if(isHost){if(t.phase==='answer')h+='<button class="btn" onclick="netTrivReveal()">Reveal answer ('+answered+'/'+players.length+') 🔍</button>';else h+='<button class="btn" onclick="netTrivNext()">'+(t.qi+1>=t.total?'See final scores 🏆':'Next question ▶')+'</button>';}
+  h+='<div style="margin-top:14px">'+netTrivBoard(r)+'</div>';box.innerHTML=h;}
+
+/* ===== ONLINE LIVE TRIVIA (Kahoot-style) ===== */
+var hostTrivQ=[],hostTrivCat=null;
+function netTrivCatChips(){var wrap=document.getElementById('net_trivcats');if(!wrap)return;wrap.innerHTML='';var keys=Object.keys(TRIVIA);if(!hostTrivCat)hostTrivCat=keys[0];keys.forEach(function(c){var b=document.createElement('button');b.className='chip'+(c===hostTrivCat?' on':'');b.textContent=c;b.onclick=function(){hostTrivCat=c;document.querySelectorAll('#net_trivcats .chip').forEach(function(x){x.classList.remove('on');});b.classList.add('on');};wrap.appendChild(b);});}
+function netTrivStart(){if(!isHost||!netState)return;var cat=hostTrivCat||Object.keys(TRIVIA)[0];var pool=shuffle(TRIVIA[cat]||[]);hostTrivQ=pool.slice(0,Math.min(10,pool.length));if(!hostTrivQ.length)return;roomRef.child('tscores').set(null);roomRef.child('tanswers').set(null);netTrivWriteQ(0,cat);roomRef.child('status').set('playing');sfx('reveal');}
+function netTrivWriteQ(qi,cat){var q=hostTrivQ[qi];roomRef.child('trivia').set({cat:cat,qi:qi,total:hostTrivQ.length,q:q.q,o:q.o,phase:'answer'});}
+function netTrivAnswer(choice){if(!netState||!netState.trivia)return;var t=netState.trivia;if(t.phase!=='answer')return;var a=netState.tanswers&&netState.tanswers[t.qi];if(a&&Object.prototype.hasOwnProperty.call(a,CLIENT_ID))return;roomRef.child('tanswers/'+t.qi+'/'+CLIENT_ID).set(choice);sfx('tap');}
+function netTrivReveal(){if(!isHost||!netState||!netState.trivia)return;var t=netState.trivia;var correct=hostTrivQ[t.qi]?hostTrivQ[t.qi].a:0;var ans=(netState.tanswers&&netState.tanswers[t.qi])||{};var scores=Object.assign({},netState.tscores||{});Object.keys(ans).forEach(function(id){if(ans[id]===correct)scores[id]=(scores[id]||0)+1;});roomRef.child('tscores').set(scores);roomRef.child('trivia/correct').set(correct);roomRef.child('trivia/phase').set('reveal');sfx('good');burst(innerWidth/2,innerHeight*0.35,50);}
+function netTrivNext(){if(!isHost||!netState||!netState.trivia)return;var t=netState.trivia;var ni=t.qi+1;if(ni>=t.total){roomRef.child('status').set('over');sfx('crown');burst(innerWidth/2,innerHeight*0.3,140);}else{netTrivWriteQ(ni,t.cat);}}
+function netTrivRestart(){if(!isHost)return;roomRef.update({status:'lobby',trivia:null,tscores:null,tanswers:null});}
+function netTrivBoard(r){var sc=r.tscores||{},players=r.players||{};var arr=Object.keys(players).map(function(id){return {name:players[id].name,pts:sc[id]||0,me:id===CLIENT_ID};});arr.sort(function(a,b){return b.pts-a.pts;});return '<div class="board">'+arr.map(function(p,i){return '<div class="brow'+(i===0&&p.pts>0?' lead':'')+'"><span>'+(i===0&&p.pts>0?'👑 ':(i+1)+'. ')+esc(p.name)+(p.me?' · you':'')+'</span><span class="pts">'+p.pts+'</span></div>';}).join('')+'</div>';}
+function netRenderTrivia(r){var box=document.getElementById('net_box');if(!box)return;var tt=document.getElementById('net_roomtitle');if(tt)tt.textContent='🧠 Live Trivia · '+room;var players=r.players?Object.entries(r.players):[];
+  if(r.status==='lobby'){var joinURL=location.origin+location.pathname+'?room='+room;
+    var h='<div class="nightbox"><div class="nn">Room code</div><div style="font-size:46px;font-weight:900;letter-spacing:6px;color:var(--p3)">'+room+'</div><div class="nn">Share it so friends can join</div></div>';
+    h+='<div class="card center"><p class="sub" style="margin:0 0 8px">📲 Scan to join</p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data='+encodeURIComponent(joinURL)+'" width="150" height="150" style="border-radius:14px;background:#fff" alt="QR"></div>';
+    h+='<p class="sub">Players ('+players.length+')</p><div class="plist">'+players.map(function(e){return '<div class="ptag"><span>'+esc(e[1].name)+(e[0]===r.host?' 👑':'')+(e[0]===CLIENT_ID?' · you':'')+'</span></div>';}).join('')+'</div>';
+    if(isHost)h+='<p class="sub" style="margin-top:14px">Pick a category:</p><div class="chips" id="net_trivcats"></div><button class="btn" '+(players.length<2?'disabled':'')+' onclick="netTrivStart()">Start quiz ▶</button>'+(players.length<2?'<p class="sub center" style="font-size:13px">Need at least 2 players.</p>':'');
+    else h+='<p class="sub center" style="margin-top:16px">Waiting for the host to start… ⏳</p>';
+    box.innerHTML=h;if(isHost)netTrivCatChips();return;}
+  if(r.status==='over'){box.innerHTML='<div class="center" style="font-size:56px;margin-top:8px">🏆</div><div class="winner">Final scores</div>'+netTrivBoard(r)+(isHost?'<button class="btn" style="margin-top:14px" onclick="netTrivRestart()">Back to lobby ▶</button>':'<p class="sub center" style="margin-top:10px">Thanks for playing! 🎉</p>')+'<button class="btn ghost" onclick="netLeave()">Leave room</button>';return;}
+  var t=r.trivia;if(!t){box.innerHTML='<div class="nightbox"><div class="big2">Loading…</div></div>';return;}
+  var ansObj=(r.tanswers&&r.tanswers[t.qi])||{};var hasMine=Object.prototype.hasOwnProperty.call(ansObj,CLIENT_ID);var myChoice=hasMine?ansObj[CLIENT_ID]:-1;var answered=Object.keys(ansObj).length;
+  var h='<div class="card"><p class="sub center" style="margin:0 0 4px">Question '+(t.qi+1)+' / '+t.total+'</p><div class="prompt" style="font-size:20px">'+esc(t.q)+'</div></div>';
+  h+='<div class="step">'+(t.o||[]).map(function(opt,i){var bg='var(--card2)';if(t.phase==='reveal'){if(i===t.correct)bg='linear-gradient(135deg,#23d18b,#00e0c6)';else if(i===myChoice)bg='linear-gradient(135deg,#ff5d5d,#ff8a3d)';}else if(hasMine&&i===myChoice)bg='rgba(0,224,198,.28)';return '<button class="crownbtn" style="text-align:left;width:100%;background:'+bg+'" onclick="netTrivAnswer('+i+')">'+esc(opt)+'</button>';}).join('')+'</div>';
+  if(t.phase==='answer')h+='<p class="sub center" style="margin-top:10px">'+(hasMine?'Answer locked ✓ — waiting for others…':'Tap your answer')+'</p>';
+  else h+='<p class="sub center" style="margin-top:10px">'+(myChoice===t.correct?'✅ Correct!':(hasMine?'❌ Not this time':'⏱️ No answer'))+'</p>';
+  if(isHost){if(t.phase==='answer')h+='<button class="btn" onclick="netTrivReveal()">Reveal answer ('+answered+'/'+players.length+') 🔍</button>';else h+='<button class="btn" onclick="netTrivNext()">'+(t.qi+1>=t.total?'See final scores 🏆':'Next question ▶')+'</button>';}
+  h+='<div style="margin-top:14px">'+netTrivBoard(r)+'</div>';box.innerHTML=h;}
+
+/* ===== IN-APP QR SCANNER ===== */
+let scanStream=null,scanRAF=null;
+function netScan(){if(!netOK){go('net_setup');return;}go('net_scan');const st=document.getElementById('scan_status');if(st)st.textContent='Looking for a code…';
+  const v=document.getElementById('scan_video');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){if(st)st.textContent='Camera not available — type the code instead.';return;}
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(s=>{scanStream=s;v.srcObject=s;v.setAttribute('playsinline','');v.play();scanTick();}).catch(()=>{if(st)st.textContent='Camera blocked. Type the code instead.';});}
+function scanTick(){const v=document.getElementById('scan_video'),c=document.getElementById('scan_canvas');if(!v||!c)return;
+  if(v.readyState===v.HAVE_ENOUGH_DATA&&window.jsQR){const ctx=c.getContext('2d');c.width=v.videoWidth;c.height=v.videoHeight;ctx.drawImage(v,0,0,c.width,c.height);const img=ctx.getImageData(0,0,c.width,c.height);const code=jsQR(img.data,img.width,img.height);if(code&&code.data){scanFound(code.data);return;}}
+  scanRAF=requestAnimationFrame(scanTick);}
+function scanFound(data){let code='';try{const m=data.match(/[?&]room=([A-Z0-9]{4})/i);if(m)code=m[1].toUpperCase();}catch(e){}
+  if(!code){const m2=data.match(/[A-Z0-9]{4}/);if(m2)code=m2[0].toUpperCase();}
+  stopScan();go('net_home');
+  if(code){const cc=document.getElementById('net_code');if(cc)cc.value=code;sfx('reveal');if(val('net_name'))netJoin();else netMsg('Scanned room '+code+' — enter your name and tap Join.');}
+  else netMsg('Could not read that QR — try again or type the code.');}
+function stopScan(){if(scanRAF)cancelAnimationFrame(scanRAF);scanRAF=null;if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}}
+
+/* ===== PAYSTACK PAYMENTS + SECURE ENTITLEMENT ===== */
+const PAYSTACK_KEY=""; /* 🔧 paste your Paystack PUBLIC key here: pk_live_... (or pk_test_... while testing) */
+const WORKER_URL=""; /* 🔧 paste your Cloudflare Worker URL here, e.g. https://hype-pay.you.workers.dev */
+let premiumLoaded=false;
+function loadPremiumContent(email){if(!WORKER_URL||!email)return;fetch(WORKER_URL+'?email='+encodeURIComponent(email)).then(r=>r.json()).then(applyPremiumContent).catch(()=>{});}
+function applyPremiumContent(d){if(!d)return;try{
+  if(d.charades)Object.assign(CH_BASE,d.charades);
+  if(d.nightlife)CH_ADULT["🍸 Nightlife"]=d.nightlife;
+  if(d.trivia)Object.keys(d.trivia).forEach(function(k){TRIVIA[k]=d.trivia[k];});
+  if(d.taboo)Object.keys(d.taboo).forEach(function(k){TABOO[k]=d.taboo[k];});
+  if(d.tod)TOD_VIBES.forEach(function(v){if(d.tod[v.name]){v.truth=d.tod[v.name].truth;v.dare=d.tod[v.name].dare;}});
+  if(d.wyr){WYR_ADULT.length=0;d.wyr.forEach(function(x){WYR_ADULT.push(x);});}
+  if(d.ml){ML_ADULT.length=0;d.ml.forEach(function(x){ML_ADULT.push(x);});}
+  premiumLoaded=true;
+}catch(e){}}
+let userEmail='';try{userEmail=localStorage.getItem('hype_email')||'';}catch(e){}
+function emailKey(e){return e.toLowerCase().replace(/[.#$\/\[\]]/g,'_');}
+function entRef(e){return DB.ref('entitlements/'+emailKey(e));}
+function netCheckEntitlement(e,cb){if(!netOK||!e){if(cb)cb(false);return;}entRef(e).once('value').then(s=>{const v=s.val();if(v&&v.premium)setPremium(true);if(cb)cb(!!(v&&v.premium));}).catch(()=>{if(cb)cb(false);});}
+function netRestoreEntitlement(){const e=val('prem_email');const msg=document.getElementById('prem_msg');if(!e||e.indexOf('@')<1){if(msg)msg.textContent='Enter the email you paid with.';return;}
+  userEmail=e;try{localStorage.setItem('hype_email',e);}catch(x){}if(msg)msg.textContent='Checking…';
+  netCheckEntitlement(e,function(ok){if(msg)msg.textContent=ok?'':'No purchase found for that email yet.';});}
+function netAwaitEntitlement(email){const msg=document.getElementById('prem_msg');const ref=entRef(email);
+  const handler=ref.on('value',function(s){const v=s.val();if(v&&v.premium){ref.off('value',handler);setPremium(true);}});
+  setTimeout(function(){ref.off('value',handler);if(!premium&&msg)msg.textContent='Still confirming — tap Restore in a moment if it hasn\'t unlocked.';},90000);}
+function payPremium(amountKobo,plan){const msg=document.getElementById('prem_msg');
+  if(!PAYSTACK_KEY||!window.PaystackPop){if(msg)msg.textContent='';setPremium(true);return;}
+  const email=val('prem_email');if(!email||email.indexOf('@')<1){if(msg)msg.textContent='Enter your email for the receipt.';return;}
+  userEmail=email;try{localStorage.setItem('hype_email',email);}catch(x){}
+  try{const h=PaystackPop.setup({key:PAYSTACK_KEY,email:email,amount:amountKobo,currency:'NGN',metadata:{plan:plan,client:CLIENT_ID},
+    callback:function(resp){if(msg)msg.textContent='Confirming payment…';netAwaitEntitlement(email);},
+    onClose:function(){if(msg)msg.textContent='Payment window closed.';}});h.openIframe();}
+  catch(e){if(msg)msg.textContent='Could not start payment.';}}
+function appBuy(plan){const msg=document.getElementById('prem_msg');const email=val('prem_email');
+  if(!email||email.indexOf('@')<1){if(msg)msg.textContent='Enter your email first.';return;}
+  userEmail=email;try{localStorage.setItem('hype_email',email);}catch(e){}
+  if(window.Android&&typeof window.Android.buy==='function'){if(msg)msg.textContent='Opening Google Play…';window.Android.buy(plan,email);}
+  else{if(msg)msg.textContent='Google Play billing isn\'t available here.';}}
+window.hypeAppUnlock=function(email){if(email){userEmail=email;try{localStorage.setItem('hype_email',email);}catch(e){}}if(userEmail)netCheckEntitlement(userEmail);};
+if(netOK&&userEmail)netCheckEntitlement(userEmail);
+
+updateSettings();
+
+/* ===== BIRTHDAY EDITION — Okechukwu Ugoji ===== */
+const BIRTHDAY_NAME="Okechukwu Ugoji";
+const BIRTHDAY_MSG="Happy Birthday to you from all of us.";
+(function(){var n=BIRTHDAY_NAME;
+  document.getElementById('bday_title').textContent='🎉 Happy Birthday, '+n+'!';
+  document.getElementById('bday_sub').textContent=BIRTHDAY_MSG+" Let's play some games to celebrate! 🥳";
+  document.getElementById('bday').style.display='flex';
+  var hb=document.getElementById('bday_banner');if(hb){hb.textContent='🎂 Celebrating '+n+' today!';hb.style.display='inline-block';}
+  setTimeout(function(){burst(innerWidth*0.3,innerHeight*0.35,80);burst(innerWidth*0.7,innerHeight*0.3,80);},200);
+})();
+function bdayEnter(){var b=document.getElementById('bday');if(b)b.style.display='none';try{audioUnlock();sfx('crown');}catch(e){}burst(innerWidth/2,innerHeight*0.4,180);}
+
+/* ===== BIRTHDAY GIFT — all premium packs unlocked FREE ===== */
+var BIRTHDAY_PREMIUM={
+  charades:{
+    "🍔 Food & Drink":["Pizza","Jollof rice","Suya","Sushi","Ice cream","Spaghetti","Pepper soup","Burger","Pancakes","Popcorn","Watermelon","Coffee","Chin chin","Plantain","Egusi soup","Doughnut","Tacos","Smoothie","Puff puff","Shawarma"],
+    "⚽ Sports":["Football","Basketball","Tennis","Boxing","Swimming","Wrestling","Golf","Table tennis","Sprinting","Weightlifting","Skateboarding","Cricket","Volleyball","Cycling","Gymnastics","Penalty kick","Slam dunk","Marathon","Surfing","Yoga"],
+    "🦸 Superheroes":["Spider-Man","Batman","Superman","Iron Man","Hulk","Wonder Woman","Black Panther","Thor","Captain America","Deadpool","The Flash","Aquaman","Black Widow","Doctor Strange","Wolverine","Storm","Ant-Man","Captain Marvel","Groot","Loki"],
+    "📺 TV & Cartoons":["SpongeBob","Tom and Jerry","The Simpsons","Money Heist","Game of Thrones","Stranger Things","Peppa Pig","Ben 10","Naruto","Squid Game","Big Brother Naija","Friends","Scooby-Doo","Mr Bean","Powerpuff Girls","Rick and Morty","Pokémon","Bluey","WWE","The Office"],
+    "😂 Memes & Internet":["Crying-laughing emoji","Side eye","Rickroll","Ate, left no crumbs","NPC walk","Touch grass","It's giving…","Rizz","Skibidi","Unboxing video","Selfie face","Going live","Doomscrolling","Main-character energy","Caps-lock rage","Slow clap","Mic drop","Plot twist","Glow up","Photo dump"],
+    "🌍 Around the World":["Eiffel Tower","Pyramids","Statue of Liberty","Great Wall","Lagos traffic","Safari","Carnival","Times Square","Mount Everest","Beach holiday","Big Ben","Taj Mahal","Niagara Falls","Desert camel","London bus","Snow skiing","Ball drop","Hot air balloon","Cruise ship","Tokyo crossing"],
+    "🎮 Video Games":["Mario","Sonic","Minecraft","Fortnite dance","Pac-Man","Tetris","Call of Duty","FIFA","Among Us","Candy Crush","Zelda","Pokémon Go","Street Fighter","Subway Surfers","GTA","Tomb Raider","Angry Birds","Roblox","Pong","Mortal Kombat"],
+    "🇳🇬 Naija Vibes":["Owambe party","Danfo bus","Jollof rice","Suya spot","NEPA took the light","Aso ebi","Gala & Lacasera","Okada ride","Nollywood drama","Detty December","Shaku shaku","Area boy","Pepper dem","Japa","Generator on","Buying fuel","Traffic hawker","Spraying money","Village people","Ehn now!"]
+  },
+  nightlife:["Bartender shaking a cocktail","Toasting champagne","VIP bottle service","Hailing a taxi at 2am","Karaoke solo","Dancing on the table","'Where are you?' group text","Lost your voice at a concert","Bouncer checking IDs","Pouring a drink","Clinking glasses · cheers","After-party DJ","Last one on the dance floor","Ordering one more round","Neon wristband","Designated driver"],
+  trivia:{
+    "⚽ Sports":[
+      {q:"How many players from one team are on a football pitch?",o:["9","10","11","12"],a:2},
+      {q:"How often is the FIFA World Cup held?",o:["Every 2 years","Every 3 years","Every 4 years","Every 5 years"],a:2},
+      {q:"How many points is a free throw in basketball?",o:["1","2","3","4"],a:0},
+      {q:"Which country has won the most men's FIFA World Cups?",o:["Germany","Brazil","Argentina","Italy"],a:1},
+      {q:"In tennis, what is a score of zero called?",o:["Nil","Love","Duck","Blank"],a:1},
+      {q:"How many rings are on the Olympic flag?",o:["4","5","6","7"],a:1},
+      {q:"Usain Bolt is famous for which sport?",o:["Swimming","Sprinting","Boxing","Cycling"],a:1},
+      {q:"How long is a football match, excluding stoppage time?",o:["60 min","80 min","90 min","100 min"],a:2}],
+    "🎬 Entertainment":[
+      {q:"Who plays Iron Man in the Marvel films?",o:["Chris Evans","Robert Downey Jr.","Mark Ruffalo","Chris Hemsworth"],a:1},
+      {q:"In which film does the lion cub Simba appear?",o:["The Lion King","Madagascar","Tarzan","Brother Bear"],a:0},
+      {q:"Which artist is called the 'King of Pop'?",o:["Elvis Presley","Michael Jackson","Prince","Drake"],a:1},
+      {q:"What colour is SpongeBob SquarePants?",o:["Green","Blue","Yellow","Orange"],a:2},
+      {q:"Which streaming hit features a deadly Korean game?",o:["Money Heist","Squid Game","Dark","Lupin"],a:1},
+      {q:"Which instrument has 88 keys?",o:["Guitar","Piano","Violin","Drums"],a:1},
+      {q:"What's the name of the cowboy toy in Toy Story?",o:["Buzz","Woody","Rex","Slinky"],a:1},
+      {q:"Which app is known for short viral dance videos?",o:["LinkedIn","TikTok","Reddit","Slack"],a:1}],
+    "🔬 Science":[
+      {q:"What is H₂O commonly known as?",o:["Salt","Water","Oxygen","Acid"],a:1},
+      {q:"Which planet is the 'Red Planet'?",o:["Venus","Mars","Jupiter","Mercury"],a:1},
+      {q:"How many bones are in the adult human body?",o:["106","206","306","406"],a:1},
+      {q:"What is the chemical symbol for gold?",o:["Go","Gd","Au","Ag"],a:2},
+      {q:"Which gas do humans need to breathe to live?",o:["Carbon dioxide","Oxygen","Helium","Nitrogen"],a:1},
+      {q:"How many legs does an insect have?",o:["4","6","8","10"],a:1},
+      {q:"What force pulls objects toward Earth?",o:["Magnetism","Gravity","Friction","Inertia"],a:1},
+      {q:"What is the nearest star to Earth?",o:["The Moon","The Sun","Mars","Sirius"],a:1}]
+  },
+  taboo:{
+    "🌟 Famous People":[
+      {word:"Burna Boy",taboo:["Afrobeats","Nigeria","Singer","Grammy","Odogwu"]},
+      {word:"Cristiano Ronaldo",taboo:["Football","Portugal","Goals","Soccer","CR7"]},
+      {word:"Beyoncé",taboo:["Singer","Music","Jay-Z","Queen","Destiny's Child"]},
+      {word:"Elon Musk",taboo:["Tesla","Rocket","Twitter","Rich","Car"]},
+      {word:"Davido",taboo:["Afrobeats","Nigeria","Singer","OBO","Music"]},
+      {word:"Taylor Swift",taboo:["Singer","Music","Album","Eras","Country"]}],
+    "🐘 Animals & Nature":[
+      {word:"Elephant",taboo:["Trunk","Big","Grey","Tusk","Africa"]},
+      {word:"Penguin",taboo:["Bird","Cold","Black","White","Antarctica"]},
+      {word:"Rainbow",taboo:["Colours","Rain","Sky","Arc","Sun"]},
+      {word:"Snake",taboo:["Slither","Reptile","Hiss","Bite","Long"]},
+      {word:"Volcano",taboo:["Lava","Erupt","Mountain","Hot","Magma"]},
+      {word:"Shark",taboo:["Fish","Teeth","Ocean","Bite","Jaws"]}]
+  },
+  tod:{
+    "Spicy 🔞":{
+      truth:["Who in this room would you most likely fall for?","What's the boldest move you've ever made on someone?","Biggest dating-app red flag you ignored anyway?","Describe your ideal first date in detail.","Most embarrassing thing you've done to get a crush's attention?","Have you ever shot your shot and missed? Spill it.","Your type in three words — and who here fits it best?","Worst pickup line that somehow actually worked on you?","What's a wild rumour about your love life — true or false?","Who was your most unexpected crush?","What's the pettiest reason you've ghosted someone?"],
+      dare:["Show the group the last flirty text you sent (or got).","Do your most confident catwalk with a wink across the room.","Whisper your go-to pickup line into the ear of the person on your right.","Give the person on your left a 10-second shoulder massage.","Demonstrate how you'd ask someone to slow-dance — pick a volunteer.","Let the group choose one emoji to sum up your love life.","Re-enact your worst-ever date in 15 seconds.","Text 'I had a dream about you 😏' to the 4th person in your chats, then admit it's a game.","Do your most dramatic slow-dance move on a chair.","Let the group scroll to the 10th photo in your camera roll.","Rate everyone in the room as a date — be honest."]
+    },
+    "After Dark 🔞":{
+      truth:["Wildest thing you've ever done on a night out?","Ever woken up somewhere unexpected after a party? Where?","Most you've ever spent in one crazy night?","Most reckless dare you've actually gone through with?","Who here would be your partner-in-crime for a wild night?","Something that happens on a night out you'd never tell your parents?","Ever sent a text you instantly regretted at 2am? What was it?","Most ridiculous drunk-craving food order you've made?","Closest you've come to getting kicked out of somewhere?","A secret talent that only comes out after midnight?"],
+      dare:["Lead the whole group in a loud, outrageous toast.","Down your drink (or take 3 big sips) and shout your hype word.","Start a dance circle and don't stop for 30 seconds.","Give a dramatic, over-the-top review of everyone's outfits.","Pick someone to be your 'date' and serenade them for 10 seconds.","Do your most scandalous dance move and name it after yourself.","Text your group chat 'tonight got wild 👀' with zero context.","Re-enact your signature drunk-you moment.","Let the group dare you one thing — you can't say no (keep it legal & safe!).","Body-roll across the room like the floor is lava."]
+    }
+  },
+  wyr:[
+    {a:"Have your search history made public",b:"Your bank balance made public"},
+    {a:"Date someone gorgeous but boring",b:"Average but hilarious"},
+    {a:"Have one wild night you can't remember",b:"A boring night you'll never forget"},
+    {a:"Let your crush read your DMs",b:"Let your boss read your DMs"},
+    {a:"Text your ex 'I miss you'",b:"Text your boss 'I quit'"},
+    {a:"Reveal how many people you've kissed",b:"Reveal your bank balance"},
+    {a:"Always say exactly what you think",b:"Never be able to lie again"},
+    {a:"Be caught singing badly in public",b:"Be caught dancing badly in public"},
+    {a:"Re-date every ex for a day",b:"Meet every future date today"}],
+  ml:["…close down the bar","…text their ex after midnight","…lose a shoe on a night out","…start a karaoke riot","…be the last one standing at the after-party","…fall asleep in the Uber home","…overshare after one drink","…flirt their way to free drinks"]
+};
+try{premium=true;localStorage.setItem('hype_prem','1');applyPremiumContent(BIRTHDAY_PREMIUM);premiumLoaded=true;updateSettings();}catch(e){}
+
+/* ===== BIRTHDAY WISHES WALL ===== */
+var wishStarted=false;
+function wishesOpen(){go('wishes');
+  if(!netOK){document.getElementById('wish_list').innerHTML='<p class="sub center">Wishes need an internet connection.</p>';return;}
+  if(wishStarted)return;wishStarted=true;
+  DB.ref('wishes').limitToLast(300).on('value',function(s){var v=s.val()||{};var arr=Object.keys(v).map(function(k){return v[k];});
+    arr.sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+    var html=arr.map(function(w){return '<div class="card" style="text-align:left;margin-bottom:8px"><div style="font-weight:800;color:var(--p3)">'+esc(w.name||'Someone')+'</div><div style="margin-top:4px;line-height:1.4">'+esc(w.msg||'')+'</div></div>';}).join('');
+    document.getElementById('wish_list').innerHTML=html||'<p class="sub center">Be the first to leave a wish! 💌</p>';});}
+function wishPost(){var name=(document.getElementById('wish_name').value||'').trim();var msg=(document.getElementById('wish_msg').value||'').trim();var st=document.getElementById('wish_status');
+  if(!msg){if(st)st.textContent='Write a message first.';return;}
+  if(!netOK){if(st)st.textContent='No connection — please try again.';return;}
+  try{DB.ref('wishes').push({name:name||'Anonymous',msg:msg,ts:Date.now()});document.getElementById('wish_msg').value='';if(st)st.textContent='Posted! 🎉 Thank you!';sfx('crown');burst(innerWidth/2,innerHeight*0.4,90);}catch(e){if(st)st.textContent='Could not post — please try again.';}}
+
+/* ===== WISHES WALL — BIG-SCREEN VIEW (for a TV/projector) ===== */
+var wallStarted=false;
+function wallOpen(){var w=document.getElementById('wall');if(!w)return;w.style.display='flex';
+  var wishURL=location.origin+location.pathname+'?wish=1';
+  var q=document.getElementById('wall_qr');if(q)q.src='https://api.qrserver.com/v1/create-qr-code/?size=190x190&margin=6&data='+encodeURIComponent(wishURL);
+  if(wallStarted)return;wallStarted=true;
+  if(!netOK){document.getElementById('wall_track').innerHTML='<div style="color:#e7deff;font-size:22px;text-align:center;padding:40px">Wishes need an internet connection.</div>';return;}
+  DB.ref('wishes').limitToLast(300).on('value',function(s){var v=s.val()||{};var arr=Object.keys(v).map(function(k){return v[k];});arr.sort(function(a,b){return (a.ts||0)-(b.ts||0);});wallRender(arr);});}
+function wallRender(arr){var track=document.getElementById('wall_track');if(!track)return;
+  if(!arr.length){track.style.animation='none';track.innerHTML='<div style="color:#e7deff;font-size:26px;text-align:center;padding:60px 20px">Be the first to wish Okechukwu a happy birthday! 💌<br><span style="font-size:18px;color:#b3a8d8">Scan the code below to post.</span></div>';return;}
+  var card=function(w){return '<div style="background:#181033;border-radius:18px;padding:20px 26px;margin-bottom:16px"><div style="font-weight:900;color:#00e0c6;font-size:22px">'+esc(w.name||'Someone')+'</div><div style="color:#f6f2ff;font-size:27px;line-height:1.35;margin-top:6px">'+esc(w.msg||'')+'</div></div>';};
+  var html=arr.map(card).join('');
+  track.innerHTML=html+html;
+  var dur=Math.max(24,arr.length*6);
+  track.style.animation='none';void track.offsetHeight;track.style.animation='wallscroll '+dur+'s linear infinite';}
+function wallClose(){var w=document.getElementById('wall');if(w)w.style.display='none';}
+
+/* auto-launch from a link: ?wall=1 opens the big screen, ?wish=1 opens the post form */
+(function(){var P=new URLSearchParams(location.search);
+  if(P.get('wall')==='1'){var b=document.getElementById('bday');if(b)b.style.display='none';wallOpen();}
+  else if(P.get('wish')==='1'){var b=document.getElementById('bday');if(b)b.style.display='none';wishesOpen();}
+})();
+/* ===== HOW TO PLAY ===== */
+var HOWTO={
+ werewolf:{t:'🐺 How to play Werewolf',b:'<p><b>Goal:</b> Villagers vote out all the werewolves. Werewolves win when they equal or outnumber the villagers.</p><p><b>The roles</b><br>🐺 <b>Werewolf</b> — eliminate a villager each night; blend in by day.<br>🧑‍🌾 <b>Villager</b> — find and vote out the werewolves.<br>🔮 <b>Seer</b> — each night, secretly learn if one player is a werewolf.<br>🩺 <b>Doctor</b> — each night, protect one player from the wolves.</p><p><b>Each round</b></p><ol><li><b>Night:</b> everyone sleeps. The app wakes the werewolves to pick a victim, the doctor to save someone, and the seer to check someone.</li><li><b>Day:</b> the app announces who was eliminated. Everyone debates who the wolves are.</li><li><b>Vote:</b> the group votes one suspect out and their role is revealed.</li></ol><p>Repeat until one side wins. <b>The app narrates every step</b> — just follow the prompts and read them aloud.</p>'},
+ spyfall:{t:'🕵️ How to play Spyfall',b:'<p><b>Goal:</b> Everyone shares a secret <b>location</b> — except one <b>Spy</b> who does not know it. Villagers try to catch the spy; the spy tries to work out the location without getting caught.</p><p><b>Setup:</b> each player privately sees the location and their role. The spy only sees "You are the Spy."</p><p><b>How to play</b></p><ol><li>Take turns asking each other questions about the place — e.g. "What are you wearing here?" or "How often do you come?"</li><li>Answer clearly enough to show you know the location, but not so obvious that the spy catches on.</li><li>The spy bluffs answers and tries to figure out where everyone is.</li></ol><p><b>Ending:</b> when the timer runs out, everyone accuses. Reveal the spy. <b>Villagers win</b> by catching the spy; <b>the spy wins</b> by escaping or guessing the location.</p><p>💡 <b>Tip:</b> too specific and the spy guesses the place; too vague and you look like the spy.</p>'},
+ taboo:{t:'🚫 How to play Taboo',b:'<p><b>Goal:</b> Get your friends to guess the word on screen — without saying the word itself or any of the banned words listed under it.</p><p><b>How to play</b></p><ol><li>One person (the clue-giver) looks at the screen. Everyone else guesses out loud.</li><li>Describe the word using anything EXCEPT the word and the 5 banned words shown.</li><li>Tap <b>Got it</b> when it is guessed, or <b>Skip</b> to pass.</li></ol><p>Score as many as you can before the 60-second timer runs out. Slip and say a banned word? That card does not count.</p>'},
+ ttl:{t:'🤥 How to play Two Truths & a Lie',b:'<p><b>Goal:</b> Fool everyone with your lie — and catch everyone else out.</p><p><b>How to play</b></p><ol><li>Each player privately types two true things about themselves and one lie, then marks which one is the lie.</li><li>Once everyone has entered theirs, the group goes person by person.</li><li>Read the three statements aloud, let everyone guess, then tap <b>Reveal</b> to show the lie.</li></ol><p>💡 <b>Tip:</b> make your lie believable and your truths surprising.</p>'}
+};
+function showHow(k){var h=HOWTO[k];if(!h)return;document.getElementById('howto_title').textContent=h.t;document.getElementById('howto_body').innerHTML=h.b;document.getElementById('howto').style.display='flex';try{sfx('tap');}catch(e){}}
+function hideHow(){document.getElementById('howto').style.display='none';}
+
+/* ===== ONLINE WOULD YOU RATHER (live poll) ===== */
+var hostWyr=[];
+function netWyrStart(){if(!isHost||!netState)return;hostWyr=shuffle(WYR_BASE);roomRef.child('wvotes').set(null);netWyrWrite(0);roomRef.child('status').set('playing');sfx('reveal');}
+function netWyrWrite(qi){var d=hostWyr[qi];roomRef.child('wyr').set({qi:qi,total:hostWyr.length,a:d.a,b:d.b});}
+function netWyrVote(side){if(!netState||!netState.wyr)return;roomRef.child('wvotes/'+netState.wyr.qi+'/'+CLIENT_ID).set(side);sfx('tap');}
+function netWyrVoteA(){netWyrVote('a');}
+function netWyrVoteB(){netWyrVote('b');}
+function netWyrNext(){if(!isHost||!netState||!netState.wyr)return;var ni=netState.wyr.qi+1;if(ni>=hostWyr.length){roomRef.child('status').set('over');}else netWyrWrite(ni);}
+function netWyrRestart(){if(!isHost)return;roomRef.update({status:'lobby',wyr:null,wvotes:null});}
+function netRenderWyr(r){var box=document.getElementById('net_box');if(!box)return;var tt=document.getElementById('net_roomtitle');if(tt)tt.textContent='🤔 Would You Rather · '+room;var players=r.players?Object.entries(r.players):[];
+  if(r.status==='lobby'){var joinURL=location.origin+location.pathname+'?room='+room;var h='<div class="nightbox"><div class="nn">Room code</div><div style="font-size:46px;font-weight:900;letter-spacing:6px;color:var(--p3)">'+room+'</div></div><div class="card center"><p class="sub" style="margin:0 0 8px">📲 Scan to join</p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data='+encodeURIComponent(joinURL)+'" width="150" height="150" style="border-radius:14px;background:#fff" alt="QR"></div><p class="sub">Players ('+players.length+')</p><div class="plist">'+players.map(function(e){return '<div class="ptag"><span>'+esc(e[1].name)+(e[0]===r.host?' 👑':'')+'</span></div>';}).join('')+'</div>';if(isHost)h+='<button class="btn" '+(players.length<2?'disabled':'')+' onclick="netWyrStart()">Start ▶</button>';else h+='<p class="sub center" style="margin-top:16px">Waiting for the host… ⏳</p>';box.innerHTML=h;return;}
+  if(r.status==='over'){box.innerHTML='<div class="center" style="font-size:56px;margin-top:8px">🎉</div><div class="winner">That was fun!</div>'+(isHost?'<button class="btn" style="margin-top:14px" onclick="netWyrRestart()">Back to lobby ▶</button>':'')+'<button class="btn ghost" onclick="netLeave()">Leave room</button>';return;}
+  var w=r.wyr;if(!w){box.innerHTML='<div class="nightbox"><div class="big2">Loading…</div></div>';return;}
+  var votes=(r.wvotes&&r.wvotes[w.qi])||{};var va=0,vb=0,my=null;Object.keys(votes).forEach(function(id){if(votes[id]==='a')va++;else if(votes[id]==='b')vb++;if(id===CLIENT_ID)my=votes[id];});var tot=(va+vb)||1;
+  var h='<div class="card center"><p class="sub" style="margin:0">Question '+(w.qi+1)+' / '+w.total+'</p><div class="prompt" style="font-size:20px;margin:6px 0">Would you rather…</div></div>';
+  h+='<button class="btn" style="min-height:82px;background:'+(my==='a'?'linear-gradient(135deg,#00b3a4,#00e0c6)':'linear-gradient(135deg,#f7971e,#ffd200)')+';color:#241200" onclick="netWyrVoteA()">'+esc(w.a)+'<br><span style="font-size:13px;font-weight:800">'+Math.round(va/tot*100)+'% · '+va+'</span></button>';
+  h+='<div class="center" style="font-weight:900;color:var(--muted);margin:8px 0">— OR —</div>';
+  h+='<button class="btn" style="min-height:82px;margin-top:0;background:'+(my==='b'?'linear-gradient(135deg,#00b3a4,#00e0c6)':'linear-gradient(135deg,#7a4dff,#b14dff)')+'" onclick="netWyrVoteB()">'+esc(w.b)+'<br><span style="font-size:13px;font-weight:800">'+Math.round(vb/tot*100)+'% · '+vb+'</span></button>';
+  if(isHost)h+='<button class="btn ghost" style="margin-top:14px" onclick="netWyrNext()">'+(w.qi+1>=w.total?'Finish 🏁':'Next ▶')+'</button>';
+  box.innerHTML=h;}
+
+/* ===== ONLINE MOST LIKELY TO (live vote) ===== */
+var hostMl=[];
+function netMlStart(){if(!isHost||!netState)return;hostMl=shuffle(ML_BASE);roomRef.child('mvotes').set(null);roomRef.child('mscores').set(null);netMlWrite(0);roomRef.child('status').set('playing');sfx('reveal');}
+function netMlWrite(qi){roomRef.child('ml').set({qi:qi,total:hostMl.length,prompt:hostMl[qi],phase:'vote'});}
+function netMlVote(idx){if(!netState||!netState.ml)return;var t=netState.ml;if(t.phase!=='vote')return;var ids=Object.keys(netState.players||{});var votedId=ids[idx];if(!votedId)return;roomRef.child('mvotes/'+t.qi+'/'+CLIENT_ID).set(votedId);sfx('tap');}
+function netMlReveal(){if(!isHost||!netState||!netState.ml)return;var t=netState.ml;var votes=(netState.mvotes&&netState.mvotes[t.qi])||{};var tally={};Object.keys(votes).forEach(function(v){var p=votes[v];tally[p]=(tally[p]||0)+1;});var winner=null,max=-1;Object.keys(tally).forEach(function(p){if(tally[p]>max){max=tally[p];winner=p;}});var scores=Object.assign({},netState.mscores||{});if(winner)scores[winner]=(scores[winner]||0)+1;roomRef.child('mscores').set(scores);roomRef.child('ml/winner').set(winner||'');roomRef.child('ml/phase').set('reveal');sfx('crown');burst(innerWidth/2,innerHeight*0.3,90);}
+function netMlNext(){if(!isHost||!netState||!netState.ml)return;var ni=netState.ml.qi+1;if(ni>=hostMl.length){roomRef.child('status').set('over');}else netMlWrite(ni);}
+function netMlRestart(){if(!isHost)return;roomRef.update({status:'lobby',ml:null,mvotes:null,mscores:null});}
+function netMlBoard(r){var sc=r.mscores||{},players=r.players||{};var arr=Object.keys(players).map(function(id){return {name:players[id].name,pts:sc[id]||0,me:id===CLIENT_ID};});arr.sort(function(a,b){return b.pts-a.pts;});return '<div class="board">'+arr.map(function(p,i){return '<div class="brow'+(i===0&&p.pts>0?' lead':'')+'"><span>'+(i===0&&p.pts>0?'👑 ':'')+esc(p.name)+(p.me?' · you':'')+'</span><span class="pts">'+p.pts+'</span></div>';}).join('')+'</div>';}
+function netRenderMl(r){var box=document.getElementById('net_box');if(!box)return;var tt=document.getElementById('net_roomtitle');if(tt)tt.textContent='👑 Most Likely To · '+room;var players=r.players?Object.entries(r.players):[];
+  if(r.status==='lobby'){var joinURL=location.origin+location.pathname+'?room='+room;var h='<div class="nightbox"><div class="nn">Room code</div><div style="font-size:46px;font-weight:900;letter-spacing:6px;color:var(--p3)">'+room+'</div></div><div class="card center"><p class="sub" style="margin:0 0 8px">📲 Scan to join</p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data='+encodeURIComponent(joinURL)+'" width="150" height="150" style="border-radius:14px;background:#fff" alt="QR"></div><p class="sub">Players ('+players.length+')</p><div class="plist">'+players.map(function(e){return '<div class="ptag"><span>'+esc(e[1].name)+(e[0]===r.host?' 👑':'')+'</span></div>';}).join('')+'</div>';if(isHost)h+='<button class="btn" '+(players.length<3?'disabled':'')+' onclick="netMlStart()">Start ▶</button>'+(players.length<3?'<p class="sub center" style="font-size:13px">Need at least 3 players.</p>':'');else h+='<p class="sub center" style="margin-top:16px">Waiting for the host… ⏳</p>';box.innerHTML=h;return;}
+  if(r.status==='over'){box.innerHTML='<div class="center" style="font-size:56px;margin-top:8px">🏆</div><div class="winner">Final crowns</div>'+netMlBoard(r)+(isHost?'<button class="btn" style="margin-top:14px" onclick="netMlRestart()">Back to lobby ▶</button>':'')+'<button class="btn ghost" onclick="netLeave()">Leave room</button>';return;}
+  var t=r.ml;if(!t){box.innerHTML='<div class="nightbox"><div class="big2">Loading…</div></div>';return;}
+  var votes=(r.mvotes&&r.mvotes[t.qi])||{};var tally={};Object.keys(votes).forEach(function(v){tally[votes[v]]=(tally[votes[v]]||0)+1;});
+  var h='<div class="card center"><p class="sub" style="margin:0">Round '+(t.qi+1)+' / '+t.total+'</p><div class="prompt" style="font-size:19px;margin:6px 0">Most likely to '+esc((t.prompt||'').replace(/^…/,''))+'</div></div>';
+  if(t.phase==='vote'){h+='<p class="sub center">Tap who fits best 👇</p><div class="crownrow">'+players.map(function(e,i){var c=tally[e[0]]||0;return '<button class="crownbtn" onclick="netMlVote('+i+')">'+esc(e[1].name)+(c?' ('+c+')':'')+'</button>';}).join('')+'</div>';if(isHost)h+='<button class="btn" style="margin-top:14px" onclick="netMlReveal()">Reveal the crown 👑</button>';}
+  else{var wname=(r.players[t.winner]||{}).name||'—';h+='<div class="nightbox"><div class="big2">👑 '+esc(wname)+'</div><div class="nn">most voted this round</div></div>'+netMlBoard(r);if(isHost)h+='<button class="btn" style="margin-top:12px" onclick="netMlNext()">'+(t.qi+1>=t.total?'Final crowns 🏆':'Next ▶')+'</button>';}
+  box.innerHTML=h;}
+</script>
+</body>
+</html>

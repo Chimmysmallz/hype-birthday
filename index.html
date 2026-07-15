@@ -210,7 +210,7 @@
 <div id="app">
 
   <!-- AGE GATE -->
-  <section class="screen active" id="age">
+  <section class="screen" id="age">
     <div class="agewrap">
       <div class="logo" style="font-size:48px">HYPE</div>
       <div class="ageq">First things first 🎈</div>
@@ -222,12 +222,12 @@
   </section>
 
   <!-- HOME -->
-  <section class="screen" id="home">
+  <section class="screen active" id="home">
     <div class="brand">
       <div class="logo">HYPE</div>
       <div class="tag">Pass the phone. Start the chaos. 🎉</div>
       <div id="bday_banner" style="display:none;margin-top:12px;background:linear-gradient(135deg,#ff2e93,#ffb800);color:#241200;padding:10px 18px;border-radius:30px;font-weight:800;font-size:13px"></div>
-      <div class="modepill" onclick="go('age')"><span id="modeText">🧃 All-ages mode</span><span class="chg">change</span></div>
+      <div class="modepill" onclick="go('age')" style="display:none"><span id="modeText">🧃 All-ages mode</span><span class="chg">change</span></div>
       <div class="settings">
         <button class="setpill on" id="setSfx" onclick="toggleSfx()">🔊 SFX</button>
         <button class="setpill" id="setMusic" onclick="toggleMusic()">🎵 Music</button>
@@ -1275,7 +1275,7 @@ var BIRTHDAY_PREMIUM={
     {a:"Re-date every ex for a day",b:"Meet every future date today"}],
   ml:["…close down the bar","…text their ex after midnight","…lose a shoe on a night out","…start a karaoke riot","…be the last one standing at the after-party","…fall asleep in the Uber home","…overshare after one drink","…flirt their way to free drinks"]
 };
-try{premium=true;localStorage.setItem('hype_prem','1');applyPremiumContent(BIRTHDAY_PREMIUM);premiumLoaded=true;updateSettings();}catch(e){}
+try{isAdult=true;premium=true;localStorage.setItem('hype_prem','1');applyPremiumContent(BIRTHDAY_PREMIUM);premiumLoaded=true;updateSettings();}catch(e){}
 
 /* ===== BIRTHDAY WISHES WALL ===== */
 var wishStarted=false;

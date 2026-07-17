@@ -483,7 +483,7 @@
     <input class="inp" id="net_name" placeholder="Your name" maxlength="14" style="margin-bottom:12px">
     <div class="card">
       <p class="sub" style="margin:0 0 8px">Create a room</p>
-      <div class="chips" id="net_gamesel"><button class="chip on" data-g="werewolf" onclick="setNetGame('werewolf')">🐺 Werewolf</button><button class="chip" data-g="spyfall" onclick="setNetGame('spyfall')">🕵️ Spyfall</button><button class="chip" data-g="trivia" onclick="setNetGame('trivia')">🧠 Live Trivia</button><button class="chip" data-g="wyr" onclick="setNetGame('wyr')">🤔 Would You Rather</button><button class="chip" data-g="mostlikely" onclick="setNetGame('mostlikely')">👑 Most Likely</button></div>
+      <div class="chips" id="net_gamesel"><button class="chip on" data-g="werewolf" onclick="setNetGame('werewolf')">🐺 Werewolf</button><button class="chip" data-g="spyfall" onclick="setNetGame('spyfall')">🕵️ Spyfall</button><button class="chip" data-g="trivia" onclick="setNetGame('trivia')">🧠 Live Trivia</button><button class="chip" data-g="wyr" onclick="setNetGame('wyr')">🤔 Would You Rather</button><button class="chip" data-g="mostlikely" onclick="setNetGame('mostlikely')">👑 Most Likely</button><button class="chip" data-g="ttl" onclick="setNetGame('ttl')">🤥 Two Truths</button></div>
       <button class="btn" onclick="netCreate()">Create room ▶</button>
     </div>
     <div class="card">
@@ -608,23 +608,27 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 
 /* ===== DATA ===== */
 const CH_BASE={
-  "🎬 Movies":["Titanic","The Lion King","Avatar","Frozen","Jurassic Park","Star Wars","Harry Potter","The Matrix","Spider-Man","Black Panther","Toy Story","Shrek","The Avengers","Inception","Finding Nemo","Gladiator","Mean Girls","King of Boys","The Wedding Party","Pirates of the Caribbean"],
-  "🌟 Celebrities":["Beyoncé","Drake","Rihanna","Cristiano Ronaldo","Lionel Messi","Taylor Swift","Will Smith","Oprah","Burna Boy","Davido","Wizkid","Tems","Tiwa Savage","Asake","Adele","Elon Musk","Snoop Dogg","Nicki Minaj","Mr Eazi","Kim Kardashian"],
-  "🐘 Animals":["Elephant","Penguin","Kangaroo","Giraffe","Monkey","Chicken","Snake","Shark","Dolphin","Lion","Frog","Eagle","Crab","Horse","Gorilla","Octopus","Goat","Tortoise","Peacock","Bat"],
-  "🎭 Actions":["Dancing","Swimming","Cooking","Driving","Sleeping","Texting","Taking a selfie","Boxing","Fishing","Crying","Brushing teeth","Riding a bike","Playing guitar","Doing laundry","Eating spaghetti","Yawning","Sneezing","Praying","Juggling","Tying shoelaces"],
-  "🕺 Dance Floor":["Twerking","Drop it low","The Shoki","Gangnam Style","The Moonwalk","Air guitar","The Floss","DJ scratching","The Catwalk","Selfie pose","The Zanku","Hands in the air","Fist pump","The Robot","Body roll","Crowd surfing","Slow whine","Confetti drop","Spin the bottle","Karaoke"],
+  "🎬 Movies":["Titanic","The Lion King","Avatar","Frozen","Jurassic Park","Star Wars","Harry Potter","The Matrix","Spider-Man","Black Panther","Toy Story","Shrek","The Avengers","Inception","Finding Nemo","Gladiator","Mean Girls","King of Boys","The Wedding Party","Pirates of the Caribbean","The Batman","Barbie","Oppenheimer","Fast & Furious","Transformers","Minions","Kung Fu Panda","Aladdin","Moana","Encanto","John Wick","Mission Impossible","Home Alone","Jumanji","The Hunger Games","Twilight","The Godfather","Terminator","Coco","Cars"],
+  "🌟 Celebrities":["Beyoncé","Drake","Rihanna","Cristiano Ronaldo","Lionel Messi","Taylor Swift","Will Smith","Oprah","Burna Boy","Davido","Wizkid","Tems","Tiwa Savage","Asake","Adele","Elon Musk","Snoop Dogg","Nicki Minaj","Mr Eazi","Kim Kardashian","Jay-Z","Kanye West","Cardi B","Chris Brown","Ed Sheeran","Bruno Mars","Justin Bieber","Ariana Grande","Selena Gomez","LeBron James","Serena Williams","Neymar","Kylian Mbappé","Usain Bolt","Barack Obama","Bill Gates","Mark Zuckerberg","Genevieve Nnaji","Don Jazzy","Olamide"],
+  "🐘 Animals":["Elephant","Penguin","Kangaroo","Giraffe","Monkey","Chicken","Snake","Shark","Dolphin","Lion","Frog","Eagle","Crab","Horse","Gorilla","Octopus","Goat","Tortoise","Peacock","Bat","Zebra","Rhino","Hippo","Cheetah","Leopard","Camel","Donkey","Cow","Pig","Sheep","Duck","Owl","Parrot","Rabbit","Squirrel","Whale","Butterfly","Spider","Scorpion","Crocodile"],
+  "🎭 Actions":["Dancing","Swimming","Cooking","Driving","Sleeping","Texting","Taking a selfie","Boxing","Fishing","Crying","Brushing teeth","Riding a bike","Playing guitar","Doing laundry","Eating spaghetti","Yawning","Sneezing","Praying","Juggling","Tying shoelaces","Running","Jumping","Skiing","Climbing","Typing","Reading","Painting","Singing","Clapping","Waving","Sweeping","Ironing","Shaving","Combing hair","Blowing a kiss","Lifting weights","Skipping rope","Washing dishes","Taking a shower","Bowing"],
+  "🕺 Dance Floor":["Twerking","Drop it low","The Shoki","Gangnam Style","The Moonwalk","Air guitar","The Floss","DJ scratching","The Catwalk","Selfie pose","The Zanku","Hands in the air","Fist pump","The Robot","Body roll","Crowd surfing","Slow whine","Confetti drop","Spin the bottle","Karaoke","Azonto","Legwork","Alanta","Skelewu","Galala","Salsa","Tango","Breakdance","The Worm","The Dab","Whip","Nae Nae","Electric slide","Macarena","Cha cha slide","Head bang","Gwara Gwara","Vogue","Limbo","Conga line"],
+  "💼 Jobs":["Doctor","Chef","Police officer","Teacher","Firefighter","Pilot","Farmer","Barber","Mechanic","Nurse","Waiter","DJ","Photographer","Lawyer","Banker","Cleaner","Tailor","Footballer","Dentist","Cashier","Judge","Engineer","Scientist","Astronaut","Soldier","Sailor","Carpenter","Plumber","Electrician","Painter","Butcher","Baker","Referee","Coach","Actor","Musician","News anchor","Bus driver","Security guard","Surgeon"],
+  "🏖️ Places":["Beach","Airport","Hospital","Church","Market","Cinema","Gym","Restaurant","Bank","School","Zoo","Nightclub","Barbershop","Petrol station","Stadium","Library","Kitchen","Office","Wedding","Traffic jam","Museum","Park","Prison","Courtroom","Casino","Farm","Desert","Jungle","Mountain","Waterfall","Cave","Castle","Lighthouse","Train station","Bus stop","Salon","Amusement park","Swimming pool","Palace","Aquarium"],
+  "🎸 Instruments":["Guitar","Drums","Piano","Trumpet","Violin","Saxophone","Flute","Talking drum","Harmonica","Microphone","Keyboard","Xylophone","Accordion","Bongo","Shekere","Cello","Bass guitar","Tambourine","Whistle","Maracas","Organ","Banjo","Ukulele","Clarinet","Oboe","Tuba","Trombone","Cymbals","Triangle","Gong","Recorder","Bagpipes","Sitar","Djembe","Conga","Steel drums","Harp","Mandolin","Kalimba","Cowbell"],
+  "🎭 Emotions":["Crying","Laughing","Angry","Sleeping","Scared","Excited","Bored","Shy","Confused","Proud","Nervous","Snoring","Sneezing","Cheering","Sulking","Yawning","Shivering","Celebrating","Sad","Happy","Jealous","Surprised","Disgusted","Embarrassed","Frustrated","Relaxed","Anxious","Guilty","Hopeful","Lonely","Grumpy","Suspicious","Overjoyed","Heartbroken","Furious","Terrified","Ticklish","Confident","Sleepy","Annoyed"],
   "🍔 Food & Drink":[],"⚽ Sports":[],"🦸 Superheroes":[],"📺 TV & Cartoons":[],"😂 Memes & Internet":[],"🌍 Around the World":[],"🎮 Video Games":[],"🇳🇬 Naija Vibes":[]};
 const CH_ADULT={"🍸 Nightlife":[]};
 
 const TOD_VIBES=[
   {name:"Chill",adult:false,desc:"Wholesome and easy — great for warming up. 😇",
-   truth:["Which colleague in the office do you think would survive the longest in a zombie apocalypse?","Have you ever faked being sick to get out of a meeting? If so, what was your excuse?","Last thing you Googled?","First celebrity crush?","Dream vacation spot?","A hidden talent nobody here knows?","Your comfort food?","Phone wallpaper right now?"],
-   dare:["Best dance move for 10 seconds.","Speak in an accent until your next turn.","Stand on one leg for 10 seconds","Do 10 jumping jacks.","Whisper everything until someone else's turn.","Drink a bottle of water","Do your best animal impression.","Finish the drink of the person next to you"]},
+   truth:["What's your most-used emoji?","Guilty-pleasure song?","Last thing you Googled?","First celebrity crush?","Dream vacation spot?","A hidden talent nobody here knows?","Your comfort food?","Phone wallpaper right now?"],
+   dare:["Best dance move for 10 seconds.","Speak in an accent until your next turn.","Take a group selfie.","Do 10 jumping jacks.","Whisper everything until someone else's turn.","Let the group pick your nickname tonight.","Best animal impression.","Compliment everyone in the room."]},
   {name:"Daring",adult:false,desc:"Bolder questions, cheekier dares — still all-ages. 😏",
-   truth:["Who here would you swap lives with for a day?","Most embarrassing school/work moment?","Biggest fib to get out of plans?","A secret talent you're a little proud of?","What's the longest time you've ever gone without showering?","Who's your secret celebrity crush?"],
-   dare:["Show the last photo in your camera roll.","Do an impression of someone in the room.","Sing the Nigerian National Anthem without missing a beat","Do 10 skips while making chicken noises",".","Squat while reciting the alphabet."]},
-  {name:"Spicy for work 🔞",adult:true,desc:"Flirty, bold and a little risky — 18+ only. 🌶️",truth:[],dare:[]},
-  {name:"After Dark for work🔞",adult:true,desc:"Wild nightlife energy, no brakes — 18+ only. 🪩🔥",truth:[],dare:[]}];
+   truth:["Who here would you swap lives with for a day?","Most embarrassing school/work moment?","Biggest fib to get out of plans?","A secret talent you're a little proud of?","Cringiest thing on your old social media?","Who's your secret celebrity crush?"],
+   dare:["Show the last photo in your camera roll.","Do an impression of someone in the room.","Sing the chorus of the last song you played.","Talk like a movie villain until your next turn.","Let the group give you a nickname for the night.","Do 15 squats reciting the alphabet."]},
+  {name:"Spicy 🔞",adult:true,desc:"Flirty, bold and a little risky — 18+ only. 🌶️",truth:[],dare:[]},
+  {name:"After Dark 🔞",adult:true,desc:"Wild nightlife energy, no brakes — 18+ only. 🪩🔥",truth:[],dare:[]}];
 
 const ML_BASE=["…become TikTok famous","…survive a zombie apocalypse","…show up late to their own wedding","…become a millionaire","…start a dance battle","…cry during a movie","…get lost using Google Maps","…eat the last slice without asking","…fall asleep at the party","…forget their own birthday","…win a karaoke contest","…adopt 10 pets","…move abroad on a whim","…laugh at the wrong moment","…lose their phone tonight","…become a stand-up comedian","…take the best selfies","…ghost the group chat","…become the boss one day","…go viral by accident","…argue over who makes the best jollof","…dance till sunrise","…marry a celebrity","…win a staring contest"];
 const ML_ADULT=[];
@@ -663,11 +667,12 @@ function openCharades(){chCatList=Object.assign({},CH_BASE,isAdult?CH_ADULT:{});
   go('ch_setup');}
 function chStart(){chDeck=shuffle(chCatList[chCat]);chIdx=0;chScore=0;chResults=[];chTimeLeft=60;chRunning=false;go('ch_play');
   document.getElementById('ch_modeLabel').textContent=chMode.play;
-  document.getElementById('ch_scoreL').textContent='0';const wordEl=document.getElementById('ch_word');document.getElementById('ch_timer').textContent='';
-  let n=3;wordEl.innerHTML='<span class="count">3</span>';
-  const cd=setInterval(()=>{n--;if(n>0){wordEl.innerHTML='<span class="count">'+n+'</span>';sfx('tap');}
+  document.getElementById('ch_scoreL').textContent='0';document.getElementById('ch_timer').textContent='';
+  document.getElementById('ch_word').innerHTML='<div style="font-size:19px;font-weight:800;line-height:1.5;padding:0 14px">📱 Turn your phone <b>sideways</b><br>and hold it flat on your <b>forehead</b></div><button class="btn" style="max-width:280px;margin:20px auto 0" onclick="chGo()">Ready — start! ▶</button>';}
+function chGo(){var wordEl=document.getElementById('ch_word');var n=3;wordEl.innerHTML='<span class="count">3</span>';sfx('tap');
+  var cd=setInterval(function(){n--;if(n>0){wordEl.innerHTML='<span class="count">'+n+'</span>';sfx('tap');}
     else{clearInterval(cd);wordEl.innerHTML='<span class="count">GO!</span>';sfx('whoosh');burst(innerWidth/2,innerHeight*0.4,60);
-      setTimeout(()=>{chRunning=true;chNext();chTick();},600);}},800);}
+      setTimeout(function(){chRunning=true;chNext();chTick();},600);}},800);}
 function chTick(){document.getElementById('ch_timer').textContent=chTimeLeft;chTimer=setInterval(()=>{chTimeLeft--;document.getElementById('ch_timer').textContent=chTimeLeft;if(chTimeLeft<=0)chEnd();},1000);}
 function chNext(){if(chIdx>=chDeck.length)chDeck=chDeck.concat(shuffle(chCatList[chCat]));document.getElementById('ch_word').textContent=chDeck[chIdx];}
 function chMark(got){if(!chRunning)return;chResults.push({word:chDeck[chIdx],got});
@@ -684,10 +689,7 @@ document.addEventListener('keydown',e=>{if(document.getElementById('ch_play').cl
 
 /* ===== TRUTH OR DARE ===== */
 let todVibe=null;
-function openTod(){const list=TOD_VIBES.filter(v=>!v.adult||isAdult);const wrap=document.getElementById('tod_vibe');wrap.innerHTML='';
-  list.forEach((v,i)=>{const b=document.createElement('button');const lk=v.adult&&!(premium&&premiumLoaded);b.className='chip'+(i===0?' on':'')+(lk?' lock':'');b.textContent=(lk?'🔒 ':'')+v.name;
-    b.onclick=lk?()=>{sfx('tap');openPrem();}:()=>{sfx('tap');document.querySelectorAll('#tod_vibe .chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');todVibe=v;document.getElementById('tod_vibedesc').textContent=v.desc;};wrap.appendChild(b);});
-  todVibe=list[0];document.getElementById('tod_vibedesc').textContent=list[0].desc;go('tod_setup');}
+function openTod(){var all={name:'🔥 Truth or Dare',desc:"One big deck — truths and dares, all mixed together. 🎉",truth:[],dare:[]};TOD_VIBES.forEach(function(v){(v.truth||[]).forEach(function(t){all.truth.push(t);});(v.dare||[]).forEach(function(d){all.dare.push(d);});});todVibe=all;var wrap=document.getElementById('tod_vibe');if(wrap)wrap.innerHTML='<button class="chip on">🔥 Truth or Dare</button>';document.getElementById('tod_vibedesc').textContent=all.desc;go('tod_setup');}
 function todDraw(type){const pool=todVibe[type];const text=pool[Math.floor(Math.random()*pool.length)];const card=document.getElementById('tod_card');card.className='tod '+type;
   card.innerHTML='<div class="lbl">'+type.toUpperCase()+'</div>'+esc(text)+(drinking?'<div class="sipinline">🍻 Refuse? Take 2 sips.</div>':'');
   document.getElementById('tod_vibetag').textContent=todVibe.name+' mode';sfx('reveal');if(type==='dare')burst(innerWidth/2,innerHeight*0.35,40);}
@@ -823,7 +825,7 @@ const OKE_TRIVIA=[
   {q:"What is Okechukwu's official role?",o:["Group Head, SME Banking","Head of IT","Branch Manager","Chief of Staff"],a:0},
   {q:"Which of these is one of Oke's classic catchphrases?",o:["Dimension it","Circle back","Ping me","Touch base"],a:0},
   {q:"Complete Oke's line: 'We will move you to the ___'",o:["branch","bench","basement","backseat"],a:0},
-  {q:"How does Oke feel about giving presentations?",o:["Craves it","Gets agitated but always executes","Refuses every time","Reads it word-for-word"],a:1},
+  {q:"How does Oke feel about giving presentations?",o:["Loves the spotlight","Gets agitated but always executes","Refuses every time","Reads it word-for-word"],a:1},
   {q:"Oke is best described as a...",o:["Micromanager","Team leader who empowers his people","Lone wolf","Clock-watcher"],a:1},
   {q:"Where does Oke go to stay in shape?",o:["The gym","The pool","The dance floor","Nowhere"],a:0},
   {q:"When things move too slowly, Oke gets...",o:["Impatient","Sleepy","Cheerful","Very quiet"],a:0},
@@ -964,6 +966,50 @@ function trvEnd(){const total=trvDeck.length,pct=trvScore/total;document.getElem
 
 /* ===== TABOO ===== */
 const TABOO={
+ "💘 Love Island":[
+  {word:"Recoupling",taboo:["Couple","Villa","Partner","Switch","Choose"]},
+  {word:"Grafting",taboo:["Flirt","Effort","Chat","Try","Couple"]},
+  {word:"My type on paper",taboo:["Ideal","Looks","Perfect","Match","Attraction"]},
+  {word:"Mugged off",taboo:["Played","Fool","Disrespect","Cheated","Embarrassed"]},
+  {word:"Casa Amor",taboo:["Villa","Second","Temptation","Test","House"]},
+  {word:"Bombshell",taboo:["New","Arrival","Islander","Enter","Shake"]},
+  {word:"The Villa",taboo:["House","Island","Mansion","Spain","Live"]},
+  {word:"Coupled up",taboo:["Together","Partner","Pair","Match","Relationship"]},
+  {word:"Pied off",taboo:["Rejected","Dumped","Ignored","Left","Snubbed"]},
+  {word:"Cracking on",taboo:["Flirt","Pursue","Chat","Couple","Move"]},
+  {word:"Melt",taboo:["Softie","Cringe","Sweet","Fool","Emotional"]},
+  {word:"The Hideaway",taboo:["Private","Room","Night","Alone","Suite"]},
+  {word:"Text message",taboo:["Phone","Villa","Announce","Islander","Ping"]},
+  {word:"Firepit",taboo:["Couple","Sit","Ceremony","Dump","Gather"]},
+  {word:"Snog Marry Pie",taboo:["Game","Challenge","Kiss","Choose","Cake"]},
+  {word:"Islander",taboo:["Contestant","Villa","Single","Cast","Member"]},
+  {word:"Dumped",taboo:["Leave","Eliminated","Out","Voted","Home"]},
+  {word:"Head turned",taboo:["Distracted","New","Interest","Change","Someone"]},
+  {word:"Loyal",taboo:["Faithful","Stay","True","Committed","Trust"]},
+  {word:"The reunion",taboo:["Ending","Cast","Meet","Final","Reveal"]}
+ ],
+ "📺 Reality TV":[
+  {word:"Big Brother Naija",taboo:["House","Housemate","Eviction","Reality","Show"]},
+  {word:"Eviction",taboo:["Leave","Vote","Out","House","Kicked"]},
+  {word:"Rose ceremony",taboo:["Bachelor","Flower","Choose","Date","Eliminate"]},
+  {word:"Survivor",taboo:["Island","Tribe","Vote","Immunity","Outlast"]},
+  {word:"Confessional",taboo:["Camera","Diary","Room","Private","Talk"]},
+  {word:"The Voice",taboo:["Sing","Chair","Turn","Coach","Blind"]},
+  {word:"Keeping Up with the Kardashians",taboo:["Kim","Family","Reality","Show","Jenner"]},
+  {word:"The Bachelor",taboo:["Rose","Dating","Single","Women","Pick"]},
+  {word:"MasterChef",taboo:["Cooking","Judge","Kitchen","Food","Contestant"]},
+  {word:"Love Island",taboo:["Villa","Couple","Dating","Islander","Sun"]},
+  {word:"America's Got Talent",taboo:["Judge","Buzzer","Golden","Stage","Show"]},
+  {word:"Nomination",taboo:["Vote","Choose","Evict","Pick","House"]},
+  {word:"The Apprentice",taboo:["Boss","Fired","Business","Boardroom","Task"]},
+  {word:"Dancing with the Stars",taboo:["Ballroom","Judge","Score","Partner","Celebrity"]},
+  {word:"Hell's Kitchen",taboo:["Gordon","Chef","Cook","Shout","Restaurant"]},
+  {word:"Idols",taboo:["Sing","Judge","Audition","Contestant","Vote"]},
+  {word:"Reunion show",taboo:["Cast","Meet","Drama","Final","Host"]},
+  {word:"Talent show",taboo:["Perform","Judge","Stage","Audition","Winner"]},
+  {word:"Housemate",taboo:["Big Brother","House","Contestant","Live","Room"]},
+  {word:"Elimination",taboo:["Out","Leave","Vote","Kicked","Send"]}
+ ],
  "🎬 Movies & TV":[
   {word:"Titanic",taboo:["Ship","Iceberg","Jack","Rose","Sink"]},
   {word:"Spider-Man",taboo:["Spider","Web","Peter","Hero","Marvel"]},
@@ -972,7 +1018,19 @@ const TABOO={
   {word:"Frozen",taboo:["Elsa","Snow","Let It Go","Ice","Disney"]},
   {word:"Squid Game",taboo:["Korean","Money","Red Light","Netflix","Game"]},
   {word:"Harry Potter",taboo:["Wizard","Magic","Hogwarts","Wand","Scar"]},
-  {word:"The Lion King",taboo:["Simba","Lion","Pride","Mufasa","Disney"]}],
+  {word:"The Lion King",taboo:["Simba","Lion","Pride","Mufasa","Disney"]},
+  {word:"Avatar",taboo:["Blue","Pandora","Aliens","Cameron","Navi"]},
+  {word:"Black Panther",taboo:["Wakanda","Marvel","King","Africa","Hero"]},
+  {word:"Money Heist",taboo:["Spanish","Robbery","Mask","Netflix","Professor"]},
+  {word:"Stranger Things",taboo:["Netflix","Eleven","Monster","80s","Upside Down"]},
+  {word:"The Avengers",taboo:["Marvel","Heroes","Iron Man","Team","Thanos"]},
+  {word:"Breaking Bad",taboo:["Walter","Drugs","Chemistry","Heisenberg","Meth"]},
+  {word:"Toy Story",taboo:["Woody","Buzz","Toys","Pixar","Andy"]},
+  {word:"Wednesday",taboo:["Addams","Netflix","Dance","Gothic","School"]},
+  {word:"Star Wars",taboo:["Jedi","Force","Lightsaber","Space","Vader"]},
+  {word:"The Wedding Party",taboo:["Nollywood","Marriage","Nigerian","Movie","Ceremony"]},
+  {word:"Jurassic Park",taboo:["Dinosaur","Island","Extinct","Park","Rex"]},
+  {word:"SpongeBob",taboo:["Sponge","Sea","Cartoon","Yellow","Krabby"]}],
  "🍔 Everyday Things":[
   {word:"Coffee",taboo:["Drink","Caffeine","Morning","Cup","Hot"]},
   {word:"Phone",taboo:["Call","Mobile","Text","Screen","Apple"]},
@@ -981,7 +1039,19 @@ const TABOO={
   {word:"Umbrella",taboo:["Rain","Wet","Cover","Open","Sun"]},
   {word:"Toothbrush",taboo:["Teeth","Clean","Mouth","Paste","Brush"]},
   {word:"Football",taboo:["Soccer","Goal","Ball","Kick","Messi"]},
-  {word:"Pillow",taboo:["Sleep","Soft","Head","Bed","Rest"]}],
+  {word:"Pillow",taboo:["Sleep","Soft","Head","Bed","Rest"]},
+  {word:"Keys",taboo:["Lock","Door","Car","Open","Metal"]},
+  {word:"Fan",taboo:["Cool","Air","Blow","Spin","Hot"]},
+  {word:"Mirror",taboo:["Reflect","See","Glass","Face","Look"]},
+  {word:"Slippers",taboo:["Feet","Wear","Shoe","Home","Foot"]},
+  {word:"Generator",taboo:["Power","Light","NEPA","Fuel","Noise"]},
+  {word:"Kettle",taboo:["Water","Boil","Hot","Tea","Pour"]},
+  {word:"Bucket",taboo:["Water","Carry","Fetch","Plastic","Fill"]},
+  {word:"Remote",taboo:["TV","Control","Button","Channel","Press"]},
+  {word:"Broom",taboo:["Sweep","Clean","Floor","Dust","Dirt"]},
+  {word:"Wallet",taboo:["Money","Cash","Pocket","Card","Leather"]},
+  {word:"Candle",taboo:["Wax","Light","Fire","Burn","Flame"]},
+  {word:"Backpack",taboo:["Bag","Carry","School","Shoulder","Books"]}],
  "🌟 Famous People":[],"🐘 Animals & Nature":[]};
 let tabCat=null,tabDeck=[],tabI=0,tabScore=0,tabResults=[],tabTimer=null,tabLeft=60,tabRun=false;
 function openTaboo(){const wrap=document.getElementById('tab_cats');wrap.innerHTML='';
@@ -1033,7 +1103,7 @@ function netJoin(){if(!netOK){go('net_setup');return;}myName=val('net_name');con
 function netWatch(){netDetach();const h=roomRef.on('value',s=>{if(!s.exists()){netLeave();return;}netState=s.val();netRender(netState);if(netGame==='spyfall'&&netState.status==='playing')netStartTimer();});netUnsub.push(()=>roomRef.off('value',h));}
 function netDetach(){netUnsub.forEach(f=>{try{f();}catch(e){}});netUnsub=[];}
 function netLeave(){try{if(roomRef)roomRef.child('players/'+CLIENT_ID).remove();}catch(e){}netDetach();if(netTimer){clearInterval(netTimer);netTimer=null;}room=null;roomRef=null;isHost=false;netState=null;go('home');}
-function netRender(r){if(netGame==='trivia'){netRenderTrivia(r);return;}if(netGame==='wyr'){netRenderWyr(r);return;}if(netGame==='mostlikely'){netRenderMl(r);return;}if(netGame==='werewolf'){netRenderWere(r);return;}if(netGame==='spyfall'){netRenderSpy(r);return;}const box=document.getElementById('net_box');if(!box)return;
+function netRender(r){if(netGame==='trivia'){netRenderTrivia(r);return;}if(netGame==='wyr'){netRenderWyr(r);return;}if(netGame==='mostlikely'){netRenderMl(r);return;}if(netGame==='werewolf'){netRenderWere(r);return;}if(netGame==='spyfall'){netRenderSpy(r);return;}if(netGame==='ttl'){netRenderTtl(r);return;}const box=document.getElementById('net_box');if(!box)return;
   document.getElementById('net_roomtitle').textContent=(netGame==='werewolf'?'🐺 Werewolf':'🕵️ Spyfall')+' · '+room;
   const players=r.players?Object.entries(r.players):[];const me=r.roles&&r.roles[CLIENT_ID];
   if(r.status==='lobby'){
@@ -1198,16 +1268,16 @@ function bdayEnter(){var b=document.getElementById('bday');if(b)b.style.display=
 /* ===== BIRTHDAY GIFT — all premium packs unlocked FREE ===== */
 var BIRTHDAY_PREMIUM={
   charades:{
-    "🍔 Food & Drink":["Pizza","Jollof rice","Suya","Sushi","Ice cream","Spaghetti","Pepper soup","Burger","Pancakes","Popcorn","Watermelon","Coffee","Chin chin","Plantain","Egusi soup","Doughnut","Tacos","Smoothie","Puff puff","Shawarma"],
-    "⚽ Sports":["Football","Basketball","Tennis","Boxing","Swimming","Wrestling","Golf","Table tennis","Sprinting","Weightlifting","Skateboarding","Cricket","Volleyball","Cycling","Gymnastics","Penalty kick","Slam dunk","Marathon","Surfing","Yoga"],
-    "🦸 Superheroes":["Spider-Man","Batman","Superman","Iron Man","Hulk","Wonder Woman","Black Panther","Thor","Captain America","Deadpool","The Flash","Aquaman","Black Widow","Doctor Strange","Wolverine","Storm","Ant-Man","Captain Marvel","Groot","Loki"],
-    "📺 TV & Cartoons":["SpongeBob","Tom and Jerry","The Simpsons","Money Heist","Game of Thrones","Stranger Things","Peppa Pig","Ben 10","Naruto","Squid Game","Big Brother Naija","Friends","Scooby-Doo","Mr Bean","Powerpuff Girls","Rick and Morty","Pokémon","Bluey","WWE","The Office"],
-    "😂 Memes & Internet":["Crying-laughing emoji","Side eye","Rickroll","Ate, left no crumbs","NPC walk","Touch grass","It's giving…","Rizz","Skibidi","Unboxing video","Selfie face","Going live","Doomscrolling","Main-character energy","Caps-lock rage","Slow clap","Mic drop","Plot twist","Glow up","Photo dump"],
-    "🌍 Around the World":["Eiffel Tower","Pyramids","Statue of Liberty","Great Wall","Lagos traffic","Safari","Carnival","Times Square","Mount Everest","Beach holiday","Big Ben","Taj Mahal","Niagara Falls","Desert camel","London bus","Snow skiing","Ball drop","Hot air balloon","Cruise ship","Tokyo crossing"],
-    "🎮 Video Games":["Mario","Sonic","Minecraft","Fortnite dance","Pac-Man","Tetris","Call of Duty","FIFA","Among Us","Candy Crush","Zelda","Pokémon Go","Street Fighter","Subway Surfers","GTA","Tomb Raider","Angry Birds","Roblox","Pong","Mortal Kombat"],
-    "🇳🇬 Naija Vibes":["Owambe party","Danfo bus","Jollof rice","Suya spot","NEPA took the light","Aso ebi","Gala & Lacasera","Okada ride","Nollywood drama","Detty December","Shaku shaku","Area boy","Pepper dem","Japa","Generator on","Buying fuel","Traffic hawker","Spraying money","Village people","Ehn now!"]
+    "🍔 Food & Drink":["Pizza","Jollof rice","Suya","Sushi","Ice cream","Spaghetti","Pepper soup","Burger","Pancakes","Popcorn","Watermelon","Coffee","Chin chin","Plantain","Egusi soup","Doughnut","Tacos","Smoothie","Puff puff","Shawarma","Hot dog","French fries","Cupcake","Chocolate","Banana","Pineapple","Grapes","Sandwich","Noodles","Fried rice","Moi moi","Akara","Boli","Zobo","Palm wine","Cake","Milkshake","Nachos","Ramen","Barbecue"],
+    "⚽ Sports":["Football","Basketball","Tennis","Boxing","Swimming","Wrestling","Golf","Table tennis","Sprinting","Weightlifting","Skateboarding","Cricket","Volleyball","Cycling","Gymnastics","Penalty kick","Slam dunk","Marathon","Surfing","Yoga","Baseball","Hockey","Rugby","Badminton","Archery","Fencing","Rowing","Diving","Karate","Judo","Taekwondo","Snooker","Darts","Bowling","Horse racing","Formula 1","Long jump","High jump","Javelin","Chess"],
+    "🦸 Superheroes":["Spider-Man","Batman","Superman","Iron Man","Hulk","Wonder Woman","Black Panther","Thor","Captain America","Deadpool","The Flash","Aquaman","Black Widow","Doctor Strange","Wolverine","Storm","Ant-Man","Captain Marvel","Groot","Loki","Green Lantern","Cyclops","Jean Grey","Green Goblin","Venom","Thanos","Joker","Harley Quinn","Catwoman","Robin","Nightwing","Shazam","Vision","Scarlet Witch","Falcon","Winter Soldier","Star-Lord","Gamora","Hawkeye","Magneto"],
+    "📺 TV & Cartoons":["SpongeBob","Tom and Jerry","The Simpsons","Money Heist","Game of Thrones","Stranger Things","Peppa Pig","Ben 10","Naruto","Squid Game","Big Brother Naija","Friends","Scooby-Doo","Mr Bean","Powerpuff Girls","Rick and Morty","Pokémon","Bluey","WWE","The Office","Breaking Bad","The Mandalorian","Wednesday","Avatar the Last Airbender","Dora the Explorer","Teletubbies","Family Guy","South Park","Gravity Falls","Adventure Time","Bob the Builder","Thomas the Tank Engine","Barney","Sesame Street","Looney Tunes","Dragon Ball Z","One Piece","WandaVision","The Crown","Peaky Blinders"],
+    "😂 Memes & Internet":["Crying-laughing emoji","Side eye","Rickroll","Ate, left no crumbs","NPC walk","Touch grass","It's giving…","Rizz","Skibidi","Unboxing video","Selfie face","Going live","Doomscrolling","Main-character energy","Caps-lock rage","Slow clap","Mic drop","Plot twist","Glow up","Photo dump","Distracted boyfriend","Grumpy cat","Ice bucket challenge","Harlem shake","Planking","Bottle flip","Floor is lava","Renegade dance","Woah","Karen","Bruh moment","Facepalm","Eye roll","Screaming into a pillow","Awkward turtle","Finger guns","Chef's kiss","Gangnam Style","Dab","Mind blown"],
+    "🌍 Around the World":["Eiffel Tower","Pyramids","Statue of Liberty","Great Wall","Lagos traffic","Safari","Carnival","Times Square","Mount Everest","Beach holiday","Big Ben","Taj Mahal","Niagara Falls","Desert camel","London bus","Snow skiing","Ball drop","Hot air balloon","Cruise ship","Tokyo crossing","Leaning Tower of Pisa","Sydney Opera House","Colosseum","Christ the Redeemer","Sahara Desert","Amazon rainforest","Grand Canyon","Northern lights","Venice gondola","Dubai skyscraper","Great Barrier Reef","Stonehenge","Mount Kilimanjaro","Victoria Falls","Rio Carnival","Running of the bulls","Oktoberfest","Cherry blossoms","Igloo","Windmill"],
+    "🎮 Video Games":["Mario","Sonic","Minecraft","Fortnite dance","Pac-Man","Tetris","Call of Duty","FIFA","Among Us","Candy Crush","Zelda","Pokémon Go","Street Fighter","Subway Surfers","GTA","Tomb Raider","Angry Birds","Roblox","Pong","Mortal Kombat","The Sims","Fall Guys","Overwatch","League of Legends","Apex Legends","Cyberpunk","Assassin's Creed","God of War","Halo","Space Invaders","Donkey Kong","Crash Bandicoot","Temple Run","Fruit Ninja","Clash of Clans","PUBG","Valorant","Rocket League","Just Dance","Guitar Hero"],
+    "🇳🇬 Naija Vibes":["Owambe party","Danfo bus","Jollof rice","Suya spot","NEPA took the light","Aso ebi","Gala & Lacasera","Okada ride","Nollywood drama","Detty December","Shaku shaku","Area boy","Pepper dem","Japa","Generator on","Buying fuel","Traffic hawker","Spraying money","Village people","Ehn now!","Small chops","Ankara style","Keke napep","Bank queue","Fuel scarcity","Village meeting","Mama put","Bus conductor","Traffic preacher","Igbo trader","Church service","Ghana-must-go bag","Wedding aso ebi","Suya at night","Owambe DJ","Pounded yam","Danfo conductor","Market woman","Filling station","Pure water seller"]
   },
-  nightlife:["Bartender shaking a cocktail","Toasting champagne","VIP bottle service","Hailing a taxi at 2am","Karaoke solo","Dancing on the table","'Where are you?' group text","Lost your voice at a concert","Bouncer checking IDs","Pouring a drink","Clinking glasses · cheers","After-party DJ","Last one on the dance floor","Ordering one more round","Neon wristband","Designated driver"],
+  nightlife:["Bartender shaking a cocktail","Toasting champagne","VIP bottle service","Hailing a taxi at 2am","Karaoke solo","Dancing on the table","'Where are you?' group text","Lost your voice at a concert","Bouncer checking IDs","Pouring a drink","Clinking glasses · cheers","After-party DJ","Last one on the dance floor","Ordering one more round","Neon wristband","Designated driver","Ordering shots","Spilling a drink","Photobooth pose","Confetti cannon","Popping a bottle","Slow dancing","Group selfie","Texting your ex","Calling an Uber","Losing your phone","Dancing in heels","Air horn blast","Crowd chanting","Birthday shot","Toasting the host","Cutting the cake","Blowing out candles","Waving a sparkler","Doing the conga","Balloon drop","Karaoke duet","Late-night suya run","Fumbling for keys","Sunrise after-party"],
   trivia:{
     "⚽ Sports":[
       {q:"How many players from one team are on a football pitch?",o:["9","10","11","12"],a:2},
@@ -1244,23 +1314,51 @@ var BIRTHDAY_PREMIUM={
       {word:"Beyoncé",taboo:["Singer","Music","Jay-Z","Queen","Destiny's Child"]},
       {word:"Elon Musk",taboo:["Tesla","Rocket","Twitter","Rich","Car"]},
       {word:"Davido",taboo:["Afrobeats","Nigeria","Singer","OBO","Music"]},
-      {word:"Taylor Swift",taboo:["Singer","Music","Album","Eras","Country"]}],
+      {word:"Taylor Swift",taboo:["Singer","Music","Album","Eras","Country"]},
+      {word:"Lionel Messi",taboo:["Football","Argentina","Soccer","Barcelona","Goals"]},
+      {word:"Wizkid",taboo:["Afrobeats","Nigeria","Singer","Star Boy","Music"]},
+      {word:"Rihanna",taboo:["Singer","Fenty","Barbados","Music","Umbrella"]},
+      {word:"Drake",taboo:["Rapper","Canada","Music","OVO","Toronto"]},
+      {word:"Barack Obama",taboo:["President","USA","Politics","First","Speech"]},
+      {word:"Tems",taboo:["Singer","Nigeria","Afrobeats","Grammy","Music"]},
+      {word:"Will Smith",taboo:["Actor","Slap","Fresh Prince","Hollywood","Oscar"]},
+      {word:"Oprah",taboo:["Talk Show","TV","Rich","Host","Interview"]},
+      {word:"Don Jazzy",taboo:["Producer","Mavin","Nigeria","Music","Beard"]},
+      {word:"Asake",taboo:["Afrobeats","Nigeria","Singer","YBNL","Music"]},
+      {word:"Kim Kardashian",taboo:["Reality","Kanye","Famous","TV","SKIMS"]},
+      {word:"Serena Williams",taboo:["Tennis","Champion","Sister","Court","Grand Slam"]},
+      {word:"Tiwa Savage",taboo:["Singer","Nigeria","Afrobeats","Queen","Music"]},
+      {word:"Genevieve Nnaji",taboo:["Nollywood","Actress","Nigeria","Movie","Star"]}],
     "🐘 Animals & Nature":[
       {word:"Elephant",taboo:["Trunk","Big","Grey","Tusk","Africa"]},
       {word:"Penguin",taboo:["Bird","Cold","Black","White","Antarctica"]},
       {word:"Rainbow",taboo:["Colours","Rain","Sky","Arc","Sun"]},
       {word:"Snake",taboo:["Slither","Reptile","Hiss","Bite","Long"]},
       {word:"Volcano",taboo:["Lava","Erupt","Mountain","Hot","Magma"]},
-      {word:"Shark",taboo:["Fish","Teeth","Ocean","Bite","Jaws"]}]
+      {word:"Shark",taboo:["Fish","Teeth","Ocean","Bite","Jaws"]},
+      {word:"Lion",taboo:["King","Jungle","Roar","Mane","Cat"]},
+      {word:"Giraffe",taboo:["Neck","Tall","Spots","Africa","Long"]},
+      {word:"Dolphin",taboo:["Sea","Smart","Swim","Fish","Jump"]},
+      {word:"Thunderstorm",taboo:["Rain","Lightning","Loud","Sky","Cloud"]},
+      {word:"Monkey",taboo:["Banana","Climb","Tree","Tail","Ape"]},
+      {word:"Waterfall",taboo:["Water","Fall","River","Cliff","Cascade"]},
+      {word:"Butterfly",taboo:["Wings","Insect","Fly","Colourful","Caterpillar"]},
+      {word:"Desert",taboo:["Sand","Dry","Hot","Camel","Sahara"]},
+      {word:"Crocodile",taboo:["Teeth","River","Reptile","Bite","Green"]},
+      {word:"Rainforest",taboo:["Jungle","Trees","Amazon","Green","Rain"]},
+      {word:"Peacock",taboo:["Feathers","Bird","Colour","Tail","Blue"]},
+      {word:"Tornado",taboo:["Wind","Spin","Storm","Twist","Funnel"]},
+      {word:"Gorilla",taboo:["Ape","Big","Strong","King Kong","Jungle"]},
+      {word:"Ocean",taboo:["Sea","Water","Blue","Waves","Big"]}]
   },
   tod:{
-    "Spicy for work 🔞":{
+    "Spicy 🔞":{
       truth:["Who in this room would you most likely fall for?","What's the boldest move you've ever made on someone?","Biggest dating-app red flag you ignored anyway?","Describe your ideal first date in detail.","Most embarrassing thing you've done to get a crush's attention?","Have you ever shot your shot and missed? Spill it.","Your type in three words — and who here fits it best?","Worst pickup line that somehow actually worked on you?","What's a wild rumour about your love life — true or false?","Who was your most unexpected crush?","What's the pettiest reason you've ghosted someone?"],
-      dare:["Show the group the last flirty text you sent (or got).","Do your most confident catwalk with a wink across the room.","Whisper your go-to pickup line into the ear of the person on your right(the person tells the room.","Give the person on your left a 10-second shoulder massage.","Lick a bar of soap.","Do karaoke to a song of the group’s choosing.","Re-enact your worst-ever date in 15 seconds.","Text 'I had a dream about you 😏' to the 4th person in your chats (any), then admit it's a game.","Do your most dramatic slow-dance move on a chair.","Let the group scroll to the 10th photo in your camera roll.","Pitch yourself as a contestant on Love Island in a 30 second video."]
+      dare:["Show the group the last flirty text you sent (or got).","Do your most confident catwalk with a wink across the room.","Whisper your go-to pickup line into the ear of the person on your right.","Give the person on your left a 10-second shoulder massage.","Demonstrate how you'd ask someone to slow-dance — pick a volunteer.","Let the group choose one emoji to sum up your love life.","Re-enact your worst-ever date in 15 seconds.","Text 'I had a dream about you 😏' to the 4th person in your chats, then admit it's a game.","Do your most dramatic slow-dance move on a chair.","Let the group scroll to the 10th photo in your camera roll.","Rate everyone in the room as a date — be honest."]
     },
-    "After Dark for work🔞":{
+    "After Dark 🔞":{
       truth:["Wildest thing you've ever done on a night out?","Ever woken up somewhere unexpected after a party? Where?","Most you've ever spent in one crazy night?","Most reckless dare you've actually gone through with?","Who here would be your partner-in-crime for a wild night?","Something that happens on a night out you'd never tell your parents?","Ever sent a text you instantly regretted at 2am? What was it?","Most ridiculous drunk-craving food order you've made?","Closest you've come to getting kicked out of somewhere?","A secret talent that only comes out after midnight?"],
-      dare:["Complete the Peter Piper Tongue Twister Without Missing a Beat","Down your drink (or take 3 big sips) and shout your hype word.","Go to the last post of a celebrity of the group's choosing and comment Marry me Mummy/Daddy","Say the alphabet backwards without pause","Pick someone to be your 'date' and serenade them for 10 seconds.","Do your most scandalous dance move and name it after yourself.","Spin around 5 times, then try to walk in a straight line","Do an impression of anyone in the room of the Group's choosing","Let the group dare you one thing — you can't say no (keep it legal & safe!).","Attempt a handstand against the wall"]
+      dare:["Lead the whole group in a loud, outrageous toast.","Down your drink (or take 3 big sips) and shout your hype word.","Start a dance circle and don't stop for 30 seconds.","Give a dramatic, over-the-top review of everyone's outfits.","Pick someone to be your 'date' and serenade them for 10 seconds.","Do your most scandalous dance move and name it after yourself.","Text your group chat 'tonight got wild 👀' with zero context.","Re-enact your signature drunk-you moment.","Let the group dare you one thing — you can't say no (keep it legal & safe!).","Body-roll across the room like the floor is lava."]
     }
   },
   wyr:[
@@ -1388,6 +1486,45 @@ function netRenderSpy(r){var box=document.getElementById('net_box');if(!box)retu
   if(r.phase==='vote'){var votes=r.votes||{};var myV=votes[CLIENT_ID];var voted=Object.keys(votes).length;h+='<div class="nightbox"><div class="big2">🗳️ Who is the spy?</div><div class="nn">'+(myV?'You voted '+esc((r.players[myV]||{}).name||'?')+' — waiting ('+voted+'/'+players.length+')':'Tap the player you suspect')+'</div></div><div class="step">'+players.map(function(e,i){return '<button class="crownbtn" onclick="spVote('+i+')">'+esc(e[1].name)+'</button>';}).join('')+'</div>';if(amSpy)h+='<button class="btn" style="margin-top:12px;background:linear-gradient(135deg,#ff2e93,#ff7a59)" onclick="spGuessMenu()">🎯 Guess the location instead</button><div id="sp_guessbox"></div>';}
   else{h+='<div class="bigtimer" id="sp_timer">…</div><p class="sub center">Ask each other questions to find the spy.</p>';if(amSpy)h+='<button class="btn" style="background:linear-gradient(135deg,#ff2e93,#ff7a59)" onclick="spGuessMenu()">🎯 Guess the location</button><div id="sp_guessbox"></div>';if(isHost)h+='<button class="btn ghost sm" style="margin-top:10px" onclick="spCallVote()">🗳️ Call the vote now</button>';}
   box.innerHTML=h;}
+
+/* ===== ONLINE TWO TRUTHS & A LIE ===== */
+var ttlSel=0;
+function netTtlStart(){if(!isHost)return;roomRef.update({status:'playing',ttl:{phase:'enter'},entries:null,gvotes:null,tlscores:null});sfx('reveal');}
+function ttlSetLieOnline(i){ttlSel=i;var w=document.getElementById('nt_lie');if(w)w.querySelectorAll('.chip').forEach(function(c,j){c.classList.toggle('on',j===i);});}
+function netTtlSubmit(){var s=[0,1,2].map(function(i){var el=document.getElementById('nt_s'+i);return el?(el.value||'').trim():'';});if(s.some(function(x){return !x;})){var st=document.getElementById('nt_count');if(st)st.textContent='Fill all three statements first.';return;}roomRef.child('entries/'+CLIENT_ID).set({s:s,lie:ttlSel});sfx('good');}
+function netTtlVote(i){if(!netState||!netState.ttl)return;var t=netState.ttl;var target=t.order[t.gi];if(target===CLIENT_ID)return;roomRef.child('gvotes/'+target+'/'+CLIENT_ID).set(i);sfx('tap');}
+function netTtlNext(){if(!isHost||!netState||!netState.ttl)return;var t=netState.ttl;var ni=t.gi+1;if(ni>=t.order.length){roomRef.child('status').set('over');}else roomRef.child('ttl').update({phase:'guess',gi:ni});}
+function ttlLobby(){if(!isHost)return;roomRef.update({status:'lobby',ttl:null,entries:null,gvotes:null,tlscores:null});}
+function ttlTick(r){if(!isHost||r.status!=='playing'||!r.ttl)return;var ids=Object.keys(r.players||{});var t=r.ttl;
+  if(t.phase==='enter'){var e=r.entries||{};if(ids.length>=2&&ids.every(function(id){return e[id];}))roomRef.child('ttl').set({phase:'guess',gi:0,order:ids});}
+  else if(t.phase==='guess'){var target=t.order[t.gi];var voters=ids.filter(function(id){return id!==target;});var gv=(r.gvotes&&r.gvotes[target])||{};if(voters.length&&voters.every(function(id){return gv[id]!=null;})){var entry=(r.entries||{})[target]||{};var lie=entry.lie;var scores=Object.assign({},r.tlscores||{});var fooled=0;voters.forEach(function(v){if(gv[v]===lie)scores[v]=(scores[v]||0)+1;else fooled++;});scores[target]=(scores[target]||0)+fooled;roomRef.update({tlscores:scores,'ttl/phase':'reveal'});}}}
+function ttlBoard(r){var sc=r.tlscores||{},players=r.players||{};var arr=Object.keys(players).map(function(id){return {name:players[id].name,pts:sc[id]||0,me:id===CLIENT_ID};});arr.sort(function(a,b){return b.pts-a.pts;});return '<div class="board">'+arr.map(function(p,i){return '<div class="brow'+(i===0&&p.pts>0?' lead':'')+'"><span>'+(i===0&&p.pts>0?'👑 ':'')+esc(p.name)+(p.me?' · you':'')+'</span><span class="pts">'+p.pts+'</span></div>';}).join('')+'</div>';}
+function netRenderTtl(r){var box=document.getElementById('net_box');if(!box)return;var tt=document.getElementById('net_roomtitle');if(tt)tt.textContent='🤥 Two Truths & a Lie · '+room;var players=r.players?Object.entries(r.players):[];
+  if(r.status==='lobby'){var joinURL=location.origin+location.pathname+'?room='+room;var h='<div class="nightbox"><div class="nn">Room code</div><div style="font-size:46px;font-weight:900;letter-spacing:6px;color:var(--p3)">'+room+'</div></div><div class="card center"><p class="sub" style="margin:0 0 8px">📲 Scan to join</p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data='+encodeURIComponent(joinURL)+'" width="150" height="150" style="border-radius:14px;background:#fff" alt="QR"></div><p class="sub">Players ('+players.length+')</p><div class="plist">'+players.map(function(e){return '<div class="ptag"><span>'+esc(e[1].name)+(e[0]===r.host?' 👑':'')+'</span></div>';}).join('')+'</div>';if(isHost)h+='<button class="btn" '+(players.length<3?'disabled':'')+' onclick="netTtlStart()">Start ▶</button>'+(players.length<3?'<p class="sub center" style="font-size:13px">Need at least 3 players.</p>':'');else h+='<p class="sub center" style="margin-top:16px">Waiting for the host to start… ⏳</p>';box.innerHTML=h;return;}
+  if(r.status==='over'){box.innerHTML='<div class="center" style="font-size:56px;margin-top:8px">🏆</div><div class="winner">Final scores</div>'+ttlBoard(r)+(isHost?'<button class="btn" style="margin-top:14px" onclick="ttlLobby()">Back to lobby ▶</button>':'')+'<button class="btn ghost" onclick="netLeave()">Leave room</button>';return;}
+  if(isHost)ttlTick(r);
+  var t=r.ttl;if(!t){box.innerHTML='<div class="nightbox"><div class="big2">Loading…</div></div>';return;}
+  var entries=r.entries||{};var ids=Object.keys(r.players||{});var submitted=Object.keys(entries).length;
+  if(t.phase==='enter'){
+    if(entries[CLIENT_ID]){box.innerHTML='<div class="nightbox"><div class="big2">✍️ Submitted!</div><div class="nn">'+submitted+' of '+ids.length+' ready — waiting for the rest…</div></div>';return;}
+    if(document.getElementById('nt_s0')){var c=document.getElementById('nt_count');if(c)c.textContent=submitted+' of '+ids.length+' submitted';return;}
+    var h='<h1 class="big">Your 3 statements</h1><p class="sub">Two true, one lie. Tap the one that is your LIE.</p>';
+    h+=[0,1,2].map(function(i){return '<input class="inp" style="margin-bottom:8px" id="nt_s'+i+'" placeholder="Statement '+(i+1)+'" maxlength="80">';}).join('');
+    h+='<div class="chips" id="nt_lie">'+[0,1,2].map(function(i){return '<button class="chip'+(i===0?' on':'')+'" onclick="ttlSetLieOnline('+i+')">Statement '+(i+1)+'</button>';}).join('')+'</div>';
+    h+='<button class="btn" onclick="netTtlSubmit()">Submit ▶</button><p class="sub center" id="nt_count" style="font-size:13px">'+submitted+' of '+ids.length+' submitted</p>';
+    ttlSel=0;box.innerHTML=h;return;}
+  var target=t.order[t.gi];var tName=(r.players[target]||{}).name||'?';var entry=entries[target]||{s:['','','']};
+  if(t.phase==='guess'){
+    if(target===CLIENT_ID){box.innerHTML='<div class="nightbox"><div class="big2">🙈 Your turn</div><div class="nn">Everyone is guessing your lie…</div></div><div class="board">'+entry.s.map(function(x,i){return '<div class="card">'+(i+1)+'. '+esc(x)+'</div>';}).join('')+'</div>';return;}
+    var gv=(r.gvotes&&r.gvotes[target])||{};var myV=gv[CLIENT_ID];var voted=Object.keys(gv).length;
+    var h='<div class="card center"><p class="sub" style="margin:0">Statements from '+esc(tName)+'</p><div class="prompt" style="font-size:18px">Which one is the lie?</div></div>';
+    h+='<div class="step">'+entry.s.map(function(x,i){var bg=(myV===i?'rgba(0,224,198,.28)':'var(--card2)');return '<button class="crownbtn" style="text-align:left;width:100%;background:'+bg+'" onclick="netTtlVote('+i+')">'+(i+1)+'. '+esc(x)+'</button>';}).join('')+'</div>';
+    h+='<p class="sub center">'+(myV!=null?'Locked — waiting ('+voted+'/'+(ids.length-1)+')':'Tap your guess')+'</p>';box.innerHTML=h;return;}
+  if(t.phase==='reveal'){var lie=entry.lie;
+    var h='<div class="card center"><p class="sub" style="margin:0">Reveal — '+esc(tName)+'</p></div>';
+    h+='<div class="board">'+entry.s.map(function(x,i){var col=(i===lie?'#ff5d5d':'#3ad6a6');return '<div class="card" style="border:2px solid '+col+'">'+(i+1)+'. '+esc(x)+' <span style="float:right;color:'+col+';font-weight:800">'+(i===lie?'LIE':'TRUE')+'</span></div>';}).join('')+'</div>';
+    h+=ttlBoard(r);if(isHost)h+='<button class="btn" style="margin-top:12px" onclick="netTtlNext()">'+(t.gi+1>=t.order.length?'Final scores 🏆':'Next player ▶')+'</button>';box.innerHTML=h;return;}
+  box.innerHTML=ttlBoard(r);}
 
 /* ===== ONLINE WOULD YOU RATHER (live poll) ===== */
 var hostWyr=[];
